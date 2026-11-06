@@ -5,6 +5,10 @@
 # Images & Graphics
 # ---------------------------------------------------------------------------
 *.png                filter=lfs diff=lfs merge=lfs -text
+# PWA icons are tiny (<15KB each) – store directly, not in LFS
+# (Vercel free plan doesn't fetch LFS objects)
+public/icon-*.png    !filter !diff !merge text=auto
+public/*.png         !filter !diff !merge text=auto
 *.jpg                filter=lfs diff=lfs merge=lfs -text
 *.jpeg               filter=lfs diff=lfs merge=lfs -text
 *.gif                filter=lfs diff=lfs merge=lfs -text

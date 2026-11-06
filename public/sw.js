@@ -1,5 +1,5 @@
-const CACHE = "ligtastow-shell-v3"
-const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/ligtastow-icon.svg", "/icon-192.svg", "/icon-512.svg"]
+const CACHE = "ligtastow-shell-v4"
+const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/ligtastow-icon.svg", "/icon-192.png", "/icon-512.png"]
 
 // Install: cache the app shell and offline page
 self.addEventListener("install", (event) => {
