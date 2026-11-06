@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { createClient } from "@supabase/supabase-js"
 import pg from "pg"
-import { PostgresDispatch } from "../../server/postgresDispatch.ts"
-import { ApiError } from "../../server/dispatchService.ts"
+import { PostgresDispatch } from "../postgresDispatch.ts"
+import { ApiError } from "../dispatchService.ts"
 
 // ── Inline types (avoid cross-directory .ts imports) ─────────────────
 type VerifiedUser = { id: string; email: string }

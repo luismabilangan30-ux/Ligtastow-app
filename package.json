@@ -9,7 +9,7 @@
     "api:cloud": "node --experimental-strip-types server/startCloud.ts",
     "db:check": "node --experimental-strip-types server/checkDatabase.ts",
     "test:db": "node --experimental-strip-types --test tests/database.test.ts",
-    "build": "vite build",
+    "build": "vite build && node bundle-api.mjs",
     "preview": "vite preview",
     "format": "oxfmt",
     "typecheck": "tsc --noEmit",
