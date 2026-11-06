@@ -89,7 +89,7 @@ async function getService() {
 
 async function verifyToken(token: string): Promise<VerifiedUser> {
   const sb = getSupabase()
-  const { data, error } = await sb.auth.getUser(token)
+  const { data, error } = await (sb.auth as any).getUser(token)
   if (error || !data.user) {
     if (error && (!error.status || error.status >= 500)) throw new ApiError(503, "AUTH_UNAVAILABLE", "Sign-in verification is unavailable. Please retry shortly.")
     throw new ApiError(401, "SESSION_EXPIRED", "Your session is invalid or expired. Sign in again.")
