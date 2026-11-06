@@ -1,14 +1,22 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node"
+import type { IncomingMessage, ServerResponse } from "node:http"
 import { createClient } from "@supabase/supabase-js"
 import pg from "pg"
-import { ApiError } from "../../server/dispatchService"
-import { PostgresDispatch, type VerifiedUser } from "../../server/postgresDispatch"
-import type { TransactionRunner } from "../../server/database"
+
+// ── Inline types (avoid cross-directory .ts imports) ─────────────────
+type VerifiedUser = { id: string; email: string }
+type SqlClient = {
+  query<R extends Record<string, any> = Record<string, any>>(sql: string, values?: any[]): Promise<{ rows: R[]; rowCount?: number | null }>
+}
+type TransactionRunner = <T>(work: (client: SqlClient) => Promise<T>) => Promise<T>
+
+class ApiError extends Error {
+  constructor(public status: number, public code: string, message: string) { super(message) }
+}
 
 // ── Lazy singletons (reused across warm invocations) ─────────────────
 let pool: pg.Pool | null = null
 let supabaseClient: ReturnType<typeof createClient> | null = null
-let serviceInstance: PostgresDispatch | null = null
+let servicePromise: Promise<any> | null = null
 
 function getPool(): pg.Pool {
   if (pool) return pool
@@ -70,9 +78,13 @@ function getTransaction(): TransactionRunner {
   }
 }
 
-function getService(): PostgresDispatch {
-  if (!serviceInstance) serviceInstance = new PostgresDispatch(getTransaction())
-  return serviceInstance
+async function getService() {
+  if (!servicePromise) {
+    servicePromise = import("../../server/postgresDispatch.ts").then(
+      (mod) => new mod.PostgresDispatch(getTransaction())
+    )
+  }
+  return servicePromise
 }
 
 async function verifyToken(token: string): Promise<VerifiedUser> {
@@ -99,8 +111,26 @@ function isAllowedOrigin(origin: string | undefined): boolean {
   } catch { return false }
 }
 
+// ── Body parser ──────────────────────────────────────────────────────
+function parseBody(req: IncomingMessage): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = []
+    let bytes = 0
+    req.on("data", (chunk: Buffer) => {
+      bytes += chunk.length
+      if (bytes > 16384) { reject(new ApiError(413, "BODY_TOO_LARGE", "Request body exceeds 16 KB.")); return }
+      chunks.push(chunk)
+    })
+    req.on("end", () => {
+      try { resolve(JSON.parse(Buffer.concat(chunks).toString("utf8"))) }
+      catch { reject(new ApiError(400, "INVALID_JSON", "Request body is not valid JSON.")) }
+    })
+    req.on("error", reject)
+  })
+}
+
 // ── Handler ──────────────────────────────────────────────────────────
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
   const origin = req.headers.origin as string | undefined
   if (origin && isAllowedOrigin(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin)
@@ -108,11 +138,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
     res.setHeader("Access-Control-Max-Age", "86400")
   }
-  if (req.method === "OPTIONS") return res.status(204).end()
+  if (req.method === "OPTIONS") { res.statusCode = 204; res.end(); return }
 
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
   res.setHeader("X-Content-Type-Options", "nosniff")
+
+  const send = (status: number, data: unknown) => { res.statusCode = status; res.end(JSON.stringify(data)) }
 
   try {
     if (!isAllowedOrigin(origin)) throw new ApiError(403, "ORIGIN_REJECTED", "Cross-origin requests are not allowed.")
@@ -123,33 +155,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const user = await verifyToken(authorization.slice(7))
-    const service = getService()
+    const service = await getService()
     const workspace = typeof req.headers["x-workspace"] === "string" ? req.headers["x-workspace"] : "motorist"
 
     const path = (req.url ?? "").split("?")[0]
 
-    if (req.method === "GET" && path === "/api/v2/session") return res.status(200).json(await service.session(user))
-    if (req.method === "GET" && path === "/api/v2/snapshot") return res.status(200).json(await service.snapshot(user, workspace))
+    if (req.method === "GET" && path === "/api/v2/session") return send(200, await service.session(user))
+    if (req.method === "GET" && path === "/api/v2/snapshot") return send(200, await service.snapshot(user, workspace))
     if (req.method !== "POST") throw new ApiError(404, "NOT_FOUND", "Unknown account API endpoint.")
 
-    const body = req.body
-    if (body === undefined || body === null) throw new ApiError(400, "INVALID_JSON", "Request body is not valid JSON.")
+    const body = await parseBody(req)
 
-    if (path === "/api/v2/bookings") return res.status(201).json(await service.create(user, workspace, body))
+    if (path === "/api/v2/bookings") return send(201, await service.create(user, workspace, body))
     const command = path.match(/^\/api\/v2\/bookings\/([a-zA-Z0-9-]+)\/commands$/)
-    if (command) return res.status(200).json(await service.command(user, workspace, command[1], body))
-    if (path === "/api/v2/profile") return res.status(200).json(await service.saveProfile(user, body))
-    if (path === "/api/v2/preferences") return res.status(200).json(await service.savePreference(user, body))
-    if (path === "/api/v2/vehicles") return res.status(200).json(await service.saveVehicle(user, body))
+    if (command) return send(200, await service.command(user, workspace, command[1], body))
+    if (path === "/api/v2/profile") return send(200, await service.saveProfile(user, body))
+    if (path === "/api/v2/preferences") return send(200, await service.savePreference(user, body))
+    if (path === "/api/v2/vehicles") return send(200, await service.saveVehicle(user, body))
     const deletion = path.match(/^\/api\/v2\/vehicles\/([a-zA-Z0-9-]+)\/delete$/)
-    if (deletion) return res.status(200).json(await service.removeVehicle(user, deletion[1]))
+    if (deletion) return send(200, await service.removeVehicle(user, deletion[1]))
 
     throw new ApiError(404, "NOT_FOUND", "Unknown account API endpoint.")
   } catch (error) {
-    if (error instanceof ApiError) {
-      return res.status(error.status).json({ error: { code: error.code, message: error.message } })
-    }
+    if (error instanceof ApiError) return send(error.status, { error: { code: error.code, message: error.message } })
     console.error("Account API request failed:", (error as Error).message ?? error)
-    return res.status(503).json({ error: { code: "SERVICE_UNAVAILABLE", message: "Account storage is unavailable. Retry shortly." } })
+    send(503, { error: { code: "SERVICE_UNAVAILABLE", message: "Account storage is unavailable. Retry shortly." } })
   }
 }
