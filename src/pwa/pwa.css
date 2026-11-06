@@ -1,0 +1,50 @@
+/* PWA install & update banners */
+.pwa-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+  border-radius: 10px;
+  margin: 8px 12px;
+  flex-wrap: wrap;
+}
+.pwa-banner p {
+  margin: 0;
+  flex: 1;
+  min-width: 180px;
+}
+.pwa-banner-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.pwa-banner-install {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #f04424;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pwa-banner-install:active {
+  opacity: 0.8;
+}
+.pwa-banner-dismiss {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+}
+.pwa-update {
+  background: #0d3320;
+}

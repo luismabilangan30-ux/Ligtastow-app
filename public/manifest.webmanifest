@@ -1,0 +1,52 @@
+{
+  "name": "LigtasTow — Roadside Assistance",
+  "short_name": "LigtasTow",
+  "description": "Safe, verified towing and roadside assistance for Philippine motorists. Request help, track your operator, and get back on the road.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#f7f6f2",
+  "theme_color": "#f04424",
+  "orientation": "portrait",
+  "categories": ["auto", "transportation", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    { "src": "/icon-48.svg", "sizes": "48x48", "type": "image/svg+xml" },
+    { "src": "/icon-72.svg", "sizes": "72x72", "type": "image/svg+xml" },
+    { "src": "/icon-96.svg", "sizes": "96x96", "type": "image/svg+xml" },
+    { "src": "/icon-128.svg", "sizes": "128x128", "type": "image/svg+xml" },
+    { "src": "/icon-144.svg", "sizes": "144x144", "type": "image/svg+xml" },
+    { "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "/icon-384.svg", "sizes": "384x384", "type": "image/svg+xml" },
+    { "src": "/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml" },
+    { "src": "/ligtastow-icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-maskable.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "/ligtastow-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "LigtasTow home screen"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Request Tow Truck",
+      "short_name": "Tow Truck",
+      "url": "/#/booking",
+      "icons": [{ "src": "/icon-96.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Booking History",
+      "short_name": "History",
+      "url": "/#/history",
+      "icons": [{ "src": "/icon-96.svg", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,32 @@
+{
+  "buildCommand": "npx --yes pnpm@10.34.3 run build",
+  "installCommand": "npx --yes pnpm@10.34.3 install --frozen-lockfile",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/v2/index.ts": {
+      "runtime": "@vercel/node@4",
+      "includeFiles": "server/**,src/motorist/model.ts,src/motorist/profileModel.ts,src/shared/account.ts,src/shared/dispatch.ts"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/v2/:path*", "destination": "/api/v2/index" },
+    { "source": "/((?!assets|icon-|ligtastow|manifest|sw|offline|robots|favicon|api).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Content-Type", "value": "application/manifest+json" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+.figma
+.local
+.env.local
+.env.server.local
+tests
+*.test.ts
+SESSION_HANDOFF.md

@@ -1,0 +1,113 @@
+/* Motorist-only styles keep the archived product surfaces unchanged. */
+.motorist-shell .profile-hero h2, .motorist-shell .profile-contact { max-width:100%; overflow-wrap:anywhere; }
+.motorist-shell .profile-hero .profile-contact { color:#515c54; font-size:12px; }
+.motorist-shell .profile-chip { max-width:calc(100% - 56px); }
+.motorist-shell .profile-chip > span:last-child { min-width:0; }
+.motorist-shell .profile-chip strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px; }
+.motorist-shell .preference-card { display:flex; align-items:center; gap:16px; padding:18px 14px; border:1px solid var(--border); border-radius:15px; margin-top:20px; }
+.motorist-shell .preference-card > div { flex:1; }
+.motorist-shell .preference-card strong { font-size:13px; }
+.motorist-shell .preference-card p { font-size:12px; line-height:1.6; color:#626963; margin:7px 0 0; }
+.motorist-shell .preference-switch { width:52px; height:44px; flex:0 0 52px; padding:10px 3px; background:transparent; border:0; position:relative; }
+.motorist-shell .preference-switch:before { content:""; position:absolute; left:0; right:0; top:8px; bottom:8px; border-radius:30px; background:#747d77; }
+.motorist-shell .preference-switch span { position:relative; display:block; width:22px; height:22px; border-radius:50%; background:white; transition:transform .15s; }
+.motorist-shell .preference-switch[aria-checked=true]:before { background:#c4381c; }
+.motorist-shell .preference-switch[aria-checked=true] span { transform:translateX(24px); }
+.motorist-shell .preference-status { color:#515c54; font-size:12px; margin:14px 0 24px; }
+.motorist-shell .page-actions button:disabled { opacity:.5; cursor:not-allowed; }
+.motorist-shell .phone-frame { display:flex; flex-direction:column; }
+.motorist-shell .phone-status, .motorist-shell .mobile-titlebar { flex-shrink:0; }
+.motorist-shell .mobile-titlebar { grid-template-columns:48px 1fr 48px; }
+.motorist-shell .phone-frame > form { flex:1; min-height:0; position:relative; }
+.motorist-shell .booking-page { height:100%; padding-bottom:160px; }
+.motorist-shell .motorist-page { flex:1; min-height:0; height:auto; padding-bottom:110px; }
+.motorist-shell h1 { margin:9px 0 16px; font-size:23px; letter-spacing:-.6px; line-height:1.2; overflow-wrap:anywhere; }
+.motorist-shell h2 { font-size:15px; }
+.motorist-shell .page-copy { color:#626963; font-size:12px; line-height:1.65; }
+.motorist-shell .demo-notice { padding:9px 11px; color:#72552c; background:#fff4df; border-radius:10px; font-size:10px; line-height:1.5; margin:0 0 14px; }
+.motorist-shell .home-map { flex-shrink:0; height:282px; }
+.motorist-shell .home-sheet { flex:1; min-height:0; height:auto; overflow-y:auto; padding-bottom:110px; }
+.motorist-shell .home-sheet .demo-notice { margin-bottom:10px; font-size:9px; }
+.motorist-shell .illustrative-map { position:relative; height:190px; border-radius:16px; overflow:hidden; }
+.motorist-shell .home-map .illustrative-map { height:100%; border-radius:0; }
+.motorist-shell .map-demo-label { position:absolute; z-index:8; bottom:12px; left:10px; padding:6px 8px; border-radius:6px; color:#59635c; background:rgba(255,255,255,.95); font-size:9px; }
+.motorist-shell .field { font-size:12px; margin:15px 0; }
+.motorist-shell .field input, .motorist-shell .field select, .motorist-shell .field textarea { width:100%; min-width:0; padding:12px; border:1px solid #c9cec9; border-radius:10px; background:white; color:var(--ink); font:inherit; font-weight:400; min-height:44px; }
+.motorist-shell .field textarea { min-height:90px; }
+.motorist-shell .field small { color:#626963; font-weight:400; line-height:1.5; }
+.motorist-shell .field [aria-invalid=true] { border-color:#bc3421; }
+.motorist-shell .field-error, .confirm-dialog .field-error { color:#b32b1b; font-size:12px; }
+.motorist-shell .form-error { padding:12px; margin-bottom:14px; border-radius:10px; border:1px solid #e9a59b; background:#fff1ed; color:#9a291b; font-size:12px; }
+.motorist-shell :focus-visible, .confirm-dialog :focus-visible { outline:3px solid #ad3925; outline-offset:3px; }
+.motorist-shell h1:focus, .motorist-shell main:focus, .motorist-shell .phone-frame:focus { outline:none; }
+.motorist-shell .btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+.motorist-shell .full-width { width:100%; }
+.motorist-shell .spaced { margin-top:18px; }
+.motorist-shell .row-actions { display:flex; justify-content:space-between; gap:10px; padding:8px 0 14px; }
+.motorist-shell .row-actions .btn { flex:1; min-height:42px; padding:9px; font-size:12px; }
+.motorist-shell .danger-text { color:#b52e1c; }
+.motorist-shell .vehicle-choice { overflow-wrap:anywhere; }
+.motorist-shell .vehicle-choice small { font-size:11px; }
+.motorist-shell .vehicle-management { padding:12px; border:1px solid var(--border); border-radius:15px; }
+.motorist-shell .vehicle-management .vehicle-choice { padding:0; border:0; }
+.motorist-shell .vehicle-management .row-actions { padding-bottom:0; }
+.motorist-shell .provider-choice { display:block; width:100%; padding:14px; border:1px solid #cbd1cb; border-radius:14px; background:white; text-align:left; }
+.motorist-shell .provider-choice.selected { border:2px solid var(--brand); background:var(--brand-soft); }
+.motorist-shell .provider-detail { display:block; margin-top:11px; font-size:11px; color:#626963; }
+.motorist-shell .selected-provider strong { font-size:12px; }
+.motorist-shell .selected-provider small { font-size:10px; line-height:1.5; }
+.motorist-shell .review-provider { display:flex; align-items:center; padding:12px; border-bottom:1px solid var(--border); gap:10px; }
+.motorist-shell .review-provider .selected-provider { flex:1; border:0; padding:0; }
+.motorist-shell .review-notes { margin:0; padding:13px; color:#626963; font-size:12px; overflow-wrap:anywhere; white-space:pre-wrap; }
+.motorist-shell .review-facts { gap:10px; grid-template-columns:1.2fr 1fr 1fr; overflow-wrap:anywhere; }
+.motorist-shell .review-route strong { font-size:12px; overflow-wrap:anywhere; }
+.motorist-shell .review-route > span { min-width:0; }
+.motorist-shell .fare-row { font-size:12px; }
+.motorist-shell .fare-total { gap:10px; }
+.motorist-shell .empty-state { display:grid; gap:8px; justify-items:center; padding:30px 10px; text-align:center; color:#626963; }
+.motorist-shell .empty-state h2 { color:var(--ink); margin:0; }
+.motorist-shell .empty-state p { font-size:12px; line-height:1.65; margin:0; }
+.motorist-shell .empty-state .btn { display:flex; margin:15px auto 0; }
+.motorist-shell .search-count { color:#626963; font-size:11px; }
+.motorist-shell .active-booking-link { display:flex; justify-content:space-between; align-items:center; width:100%; border:1px solid #e1b5a9; border-radius:10px; padding:10px; background:#fff5ef; color:#a82c15; font-size:12px; margin:0 0 12px; }
+.motorist-shell .search-summary { margin-top:16px; }
+.motorist-shell .search-summary strong { font-size:12px; line-height:1.55; overflow-wrap:anywhere; }
+.motorist-shell .booking-notes { font-size:11px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.motorist-shell .search-summary > div > span { min-width:0; }
+.motorist-shell .search-summary svg { flex-shrink:0; }
+.motorist-shell .timeline-card { margin:16px 0; padding-top:12px; }
+.motorist-shell .timeline-row { min-height:50px; }
+.motorist-shell .timeline-row strong { font-size:12px; }
+.motorist-shell .timeline-row small { font-size:10px; }
+.motorist-shell .rating-options { display:flex; justify-content:center; gap:8px; margin:16px 0; }
+.motorist-shell .rating-options button { width:44px; height:44px; display:grid; place-items:center; color:#bb6b00; background:#fff8e9; border:1px solid #ead8ba; border-radius:10px; }
+.motorist-shell .stepper { display:flex; justify-content:space-between; gap:8px; }
+.motorist-shell .stepper span:not(:last-child) { margin-right:0; }
+.motorist-shell .stepper span:after { display:none; }
+.motorist-shell .bottom-nav { padding-bottom:max(14px,env(safe-area-inset-bottom)); height:calc(74px + env(safe-area-inset-bottom)); }
+.motorist-shell .sticky-action { padding-bottom:max(19px,env(safe-area-inset-bottom)); }
+.motorist-shell .app-search input { min-height:44px; font-size:12px; }
+.motorist-shell .app-search { min-height:48px; height:auto; }
+.motorist-shell .service-list small, .motorist-shell .settings-list small { font-size:11px; }
+.motorist-shell .service-list strong, .motorist-shell .settings-list strong { font-size:12px; }
+.motorist-shell .notification-list strong { font-size:12px; }
+.motorist-shell .notification-list small { font-size:11px; }
+.motorist-shell .booking-record p { font-size:11px; line-height:1.5; overflow-wrap:anywhere; }
+.motorist-shell .booking-record > div { gap:8px; flex-wrap:wrap; }
+.motorist-shell .connection-banner, .motorist-shell .storage-warning { position:fixed; z-index:80; top:5px; left:50%; transform:translateX(-50%); max-width:calc(100vw - 24px); padding:12px; border-radius:10px; color:#5d451d; background:#fff1cf; font-size:12px; box-shadow:var(--shadow-md); }
+.motorist-shell .storage-warning { top:50px; display:flex; gap:10px; align-items:center; }
+.motorist-shell .storage-warning button { border:0; background:none; font-size:24px; }
+.confirm-dialog { width:min(360px,calc(100vw - 32px)); max-height:calc(100dvh - 40px); margin:auto; padding:23px; border:1px solid #dbded8; border-radius:20px; background:white; box-shadow:0 20px 70px #0003; }
+.confirm-dialog::backdrop { background:#15221b99; }
+.confirm-dialog h2 { margin:0 0 12px; font-size:20px; }
+.confirm-dialog p { font-size:13px; color:#626963; line-height:1.6; }
+.confirm-dialog .dialog-actions { display:flex; gap:10px; margin-top:20px; }
+.confirm-dialog .btn { flex:1; padding:10px; font-size:12px; }
+.confirm-dialog .field { margin:14px 0; }
+.confirm-dialog .field select,.confirm-dialog .field textarea { width:100%; border:1px solid #c9cec9; border-radius:8px; padding:10px; font:inherit; font-size:12px; }
+@media (max-width:600px) {
+  .motorist-shell .phone-status { height:env(safe-area-inset-top,0px); min-height:0; padding:0; }
+  .motorist-shell .phone-status > * { display:none; }
+  .motorist-shell .home-map { height:clamp(235px,34dvh,290px); }
+  .motorist-shell .btn { min-height:44px; }
+}

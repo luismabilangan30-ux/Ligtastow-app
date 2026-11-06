@@ -1,0 +1,31 @@
+node_modules/
+dist/
+build/
+.cache/
+.env*
+!.env.example
+!.env.server.example
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+*-debug.log*
+logs/
+*.log
+.claude-replay.*
+.tmp-*
+/.figma/design-context/
+
+# Platform-managed agentplat state.
+/.plugins/
+/.opencode-skills/
+
+# Local IDE settings and browser test artifacts.
+.idea/
+test-results/
+.local/
+/prod-ca-2021.crt
+
+# Session handoffs and internal docs (not project source).
+SESSION_HANDOFF.md
+docs/
+reauthor.sh

@@ -1,0 +1,11 @@
+{
+  "title": "LigtasTow — Roadside Assistance",
+  "description": "Safe, verified towing and roadside assistance for Philippine motorists. Request help, track your operator, and get back on the road.",
+  "robots": {
+    "index": true
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
