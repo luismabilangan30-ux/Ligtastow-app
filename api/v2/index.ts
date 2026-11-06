@@ -1,6 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { createClient } from "@supabase/supabase-js"
 import pg from "pg"
+import { PostgresDispatch } from "../../server/postgresDispatch.ts"
+import { ApiError } from "../../server/dispatchService.ts"
 
 // ── Inline types (avoid cross-directory .ts imports) ─────────────────
 type VerifiedUser = { id: string; email: string }
@@ -9,14 +11,11 @@ type SqlClient = {
 }
 type TransactionRunner = <T>(work: (client: SqlClient) => Promise<T>) => Promise<T>
 
-class ApiError extends Error {
-  constructor(public status: number, public code: string, message: string) { super(message) }
-}
+// ApiError imported from server/dispatchService.ts
 
 // ── Lazy singletons (reused across warm invocations) ─────────────────
 let pool: pg.Pool | null = null
 let supabaseClient: ReturnType<typeof createClient> | null = null
-let servicePromise: Promise<any> | null = null
 
 function getPool(): pg.Pool {
   if (pool) return pool
@@ -78,13 +77,10 @@ function getTransaction(): TransactionRunner {
   }
 }
 
-async function getService() {
-  if (!servicePromise) {
-    servicePromise = import("../../server/postgresDispatch.ts").then(
-      (mod) => new mod.PostgresDispatch(getTransaction())
-    )
-  }
-  return servicePromise
+let serviceInstance: PostgresDispatch | null = null
+function getService(): PostgresDispatch {
+  if (!serviceInstance) serviceInstance = new PostgresDispatch(getTransaction())
+  return serviceInstance
 }
 
 async function verifyToken(token: string): Promise<VerifiedUser> {
@@ -155,7 +151,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
 
     const user = await verifyToken(authorization.slice(7))
-    const service = await getService()
+    const service = getService()
     const workspace = typeof req.headers["x-workspace"] === "string" ? req.headers["x-workspace"] : "motorist"
 
     const path = (req.url ?? "").split("?")[0]
