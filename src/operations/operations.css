@@ -5,7 +5,7 @@
 .workspace-bar span { font-size:10px; color:#8c4a26; }
 .workspace-bar label { display:grid; gap:3px; font-size:10px; color:#60685e; width:250px; min-width:0; }
 .workspace-bar select { width:100%; max-width:100%; min-height:36px; border:1px solid #d4d9d0; border-radius:8px; background:white; padding:7px; color:#263529; font:inherit; font-size:12px; }
-.dispatch-app .showcase-bg { padding-top:30px; min-height:calc(100dvh - 76px); }
+.dispatch-app .showcase-bg { padding-top:30px; min-height:100dvh; }
 .api-banner { padding:10px 20px; background:#fff3d8; color:#5e4a25; font-size:13px; display:flex; justify-content:center; align-items:center; gap:14px; }
 .api-error { background:#fce9e4; color:#8d2617; }
 .api-banner button { border:1px solid currentColor; border-radius:6px; padding:6px 10px; background:white; white-space:nowrap; }
@@ -63,7 +63,7 @@
 .dispatch-app :focus-visible { outline:3px solid #af3c20; outline-offset:3px; }
 @media(max-width:600px) {
  .workspace-bar { padding:max(10px, env(safe-area-inset-top)) 12px 10px; gap:10px; min-height:76px; }.workspace-bar strong { font-size:17px; }.workspace-bar select { width:100%; font-size:10px; }.workspace-bar label { min-width:0; width:185px; }
- .dispatch-app .showcase-bg { padding:0; }.dispatch-app .phone-frame { height:calc(100dvh - 76px); }.operations-page { padding:24px 14px 45px; }.operations-heading { display:block; }.operations-heading h1 { font-size:26px; }.ops-live { margin-top:14px; }
+ .dispatch-app .showcase-bg { padding:0; }.dispatch-app .phone-frame { height:100dvh; }.operations-page { padding:24px 14px 45px; }.operations-heading { display:block; }.operations-heading h1 { font-size:26px; }.ops-live { margin-top:14px; }
  .ops-metrics { gap:8px; }.ops-metrics > div { padding:12px 9px; gap:5px; display:flex; flex-direction:column; }.ops-metrics svg { display:none; }.ops-metrics strong { font-size:28px; }.ops-metrics span { font-size:10px; }
  .ops-list-heading { display:block; }.ops-list-heading input { width:100%; }.ops-booking { padding:17px; }.ops-filters { gap:5px; }.ops-filters button { padding:9px 11px; }.api-banner { font-size:11px; padding:10px; gap:8px; }
 }
