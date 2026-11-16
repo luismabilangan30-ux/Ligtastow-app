@@ -135,17 +135,23 @@ export default function BookingFlow({
     if (!hasMapbox()) return
     setRouteLoading(true)
     try {
-      const [pickupResults, destResults] = await Promise.all([
-        forwardGeocode(draft.pickup),
-        isTow(draft.service) && draft.destination
-          ? forwardGeocode(draft.destination)
-          : Promise.resolve([]),
-      ])
-      const pickupCoords = pickupResults[0]?.center as [number, number] | undefined
-      const destCoords = destResults[0]?.center as [number, number] | undefined
+      // Use existing coords if already set (from GPS, map pin, or autocomplete)
+      // Only geocode the text address as a fallback
+      let pickupCoords = draft.pickupCoords
+      let destCoords = draft.destinationCoords
+
+      if (!pickupCoords) {
+        const results = await forwardGeocode(draft.pickup)
+        pickupCoords = results[0]?.center as [number, number] | undefined
+      }
+      if (!destCoords && isTow(draft.service) && draft.destination) {
+        const results = await forwardGeocode(draft.destination)
+        destCoords = results[0]?.center as [number, number] | undefined
+      }
+
       const updates: Partial<Draft> = {}
-      if (pickupCoords) updates.pickupCoords = pickupCoords
-      if (destCoords) updates.destinationCoords = destCoords
+      if (pickupCoords && !draft.pickupCoords) updates.pickupCoords = pickupCoords
+      if (destCoords && !draft.destinationCoords) updates.destinationCoords = destCoords
 
       if (pickupCoords && destCoords) {
         const route = await getRoute(
