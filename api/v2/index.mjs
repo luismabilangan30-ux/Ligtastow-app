@@ -175,12 +175,14 @@ function makeBooking(draft, vehicles) {
 		const error = validateStep(step, draft, vehicles);
 		if (error) throw new Error(error);
 	}
-	const { vehicleId, pickupCoords, destinationCoords, routeDistance, routeDuration, ...details } = draft;
+	const { vehicleId, routeDistance, routeDuration, ...details } = draft;
 	return {
 		...details,
 		pickup: draft.pickup.trim(),
 		destination: isTow(draft.service) ? draft.destination.trim() : "Assistance at pickup",
 		notes: draft.notes.trim(),
+		pickupCoords: draft.pickupCoords,
+		destinationCoords: draft.destinationCoords,
 		id: `LT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
 		vehicle: { ...vehicles.find((vehicle) => vehicle.id === vehicleId) },
 		providerName: providers.find((provider) => provider.id === draft.providerId).name,

@@ -268,7 +268,7 @@ export function makeBooking(draft: Draft, vehicles: Vehicle[]): Booking {
     const error = validateStep(step, draft, vehicles)
     if (error) throw new Error(error)
   }
-  const { vehicleId, pickupCoords, destinationCoords, routeDistance, routeDuration, ...details } = draft
+  const { vehicleId, routeDistance, routeDuration, ...details } = draft
   return {
     ...details,
     pickup: draft.pickup.trim(),
@@ -276,6 +276,8 @@ export function makeBooking(draft: Draft, vehicles: Vehicle[]): Booking {
       ? draft.destination.trim()
       : "Assistance at pickup",
     notes: draft.notes.trim(),
+    pickupCoords: draft.pickupCoords,
+    destinationCoords: draft.destinationCoords,
     id: `LT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
     vehicle: { ...vehicles.find((vehicle) => vehicle.id === vehicleId)! },
     providerName: providers.find(

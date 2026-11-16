@@ -90,11 +90,18 @@ export function ActiveBooking({
   const activeBookingId = booking?.status === "assigned" ? booking.id : undefined
   const { operatorPosition, eta } = useOperatorTracking(activeBookingId)
 
-  // Geocode the booking's pickup address for the green pin
-  const [pickupPin, setPickupPin] = useState<[number, number] | null>(null)
+  // Pickup pin: use stored coords from booking, fall back to geocoding
+  const [pickupPin, setPickupPin] = useState<[number, number] | null>(
+    booking?.pickupCoords ?? null,
+  )
   const geocodedRef = useRef("")
 
   useEffect(() => {
+    // If booking already has coordinates, use them directly
+    if (booking?.pickupCoords) {
+      setPickupPin(booking.pickupCoords)
+      return
+    }
     const address = booking?.pickup
     if (!address || geocodedRef.current === address || !hasMapbox()) return
     geocodedRef.current = address
@@ -103,7 +110,7 @@ export function ActiveBooking({
         setPickupPin([results[0].center[0], results[0].center[1]])
       }
     })
-  }, [booking?.pickup])
+  }, [booking?.pickup, booking?.pickupCoords])
 
   // Compute route line from operator to pickup (throttled)
   const [routeLine, setRouteLine] = useState<{ type: "LineString"; coordinates: [number, number][] } | null>(null)

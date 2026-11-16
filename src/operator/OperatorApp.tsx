@@ -252,7 +252,9 @@ function JobProgress({ job, act, pending }: {
 
   // Track own GPS position for ETA display
   const [myPosition, setMyPosition] = useState<{ lng: number; lat: number } | null>(null)
-  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(
+    job.pickupCoords ? { lng: job.pickupCoords[0], lat: job.pickupCoords[1] } : null,
+  )
   const geocodedRef = useRef("")
 
   useEffect(() => {
@@ -265,8 +267,12 @@ function JobProgress({ job, act, pending }: {
     return () => navigator.geolocation.clearWatch(id)
   }, [])
 
-  // Geocode pickup address to get real coordinates for ETA
+  // Use stored coords from booking, fall back to geocoding
   useEffect(() => {
+    if (job.pickupCoords) {
+      setPickupCoords({ lng: job.pickupCoords[0], lat: job.pickupCoords[1] })
+      return
+    }
     if (!job.pickup || geocodedRef.current === job.pickup) return
     geocodedRef.current = job.pickup
     if (!hasMapbox()) return
@@ -275,7 +281,7 @@ function JobProgress({ job, act, pending }: {
         setPickupCoords({ lng: results[0].center[0], lat: results[0].center[1] })
       }
     })
-  }, [job.pickup])
+  }, [job.pickup, job.pickupCoords])
 
   // Compute ETA to pickup using geocoded coordinates
   const etaMinutes = myPosition && pickupCoords ? (() => {
