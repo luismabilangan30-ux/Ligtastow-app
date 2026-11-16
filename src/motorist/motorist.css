@@ -322,3 +322,12 @@
   margin-top: 4px;
 }
 .motorist-shell .address-confirmed svg { color: #16a34a; }
+.motorist-shell .address-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #d97706;
+  font-weight: 500;
+  font-size: 0.82rem;
+}
+.motorist-shell .address-hint svg { color: #d97706; }

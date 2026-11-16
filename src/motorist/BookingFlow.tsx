@@ -463,7 +463,12 @@ export default function BookingFlow({
 
               {draft.pickupCoords && (
                 <p className="page-copy address-confirmed">
-                  <Icon name="check" size={13} /> Pickup location pinned on map
+                  <Icon name="check" size={13} /> Pickup location pinned — tap the map to adjust
+                </p>
+              )}
+              {!draft.pickupCoords && hasMapbox() && draft.pickup.trim().length >= 3 && (
+                <p className="page-copy address-hint">
+                  <Icon name="pin" size={13} /> Select a suggestion, use GPS, or tap the map to pin your exact location
                 </p>
               )}
             </>

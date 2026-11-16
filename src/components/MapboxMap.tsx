@@ -199,12 +199,17 @@ export default function MapboxMap({
   // Fit bounds when pickup + destination exist
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !pickup || !destination) return
-    const bounds = new mapboxgl.LngLatBounds()
-    bounds.extend(pickup)
-    bounds.extend(destination)
-    if (operator) bounds.extend(operator)
-    map.fitBounds(bounds, { padding: 60, maxZoom: 15, duration: 800 })
+    if (!map || !pickup) return
+    if (destination) {
+      const bounds = new mapboxgl.LngLatBounds()
+      bounds.extend(pickup)
+      bounds.extend(destination)
+      if (operator) bounds.extend(operator)
+      map.fitBounds(bounds, { padding: 60, maxZoom: 15, duration: 800 })
+    } else {
+      // Single pickup pin: fly to it so user can see and adjust
+      map.flyTo({ center: pickup, zoom: 15, duration: 800 })
+    }
   }, [pickup, destination, operator])
 
   // Re-center on single point change
