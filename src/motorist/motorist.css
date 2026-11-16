@@ -175,3 +175,18 @@
   font-size: 13px;
   color: #374151;
 }
+
+
+/* ── Fare Route Info ────────────────────────────────────── */
+.motorist-shell .fare-route-info {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0 4px;
+  font-size: 13px;
+  color: #374151;
+}
+.motorist-shell .fare-route-info span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

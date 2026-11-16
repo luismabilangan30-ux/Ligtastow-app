@@ -1,5 +1,6 @@
-import { useRef, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { Badge, Button, Icon, PhoneFrame } from "../components/ui"
+import { hasMapbox, forwardGeocode, getRoute } from "../components/mapUtils"
 import {
   ConfirmDialog,
   EmptyState,
@@ -47,10 +48,11 @@ export default function BookingFlow({
 }) {
   const [error, setError] = useState("")
   const [discard, setDiscard] = useState(false)
+  const [routeLoading, setRouteLoading] = useState(false)
   const errorRef = useRef<HTMLDivElement>(null)
   const vehicle = vehicles.find((item) => item.id === draft.vehicleId)
   const provider = providerOptions.find((item) => item.id === draft.providerId)
-  const quote = quoteFor(draft.service, draft.providerId)
+  const quote = quoteFor(draft.service, draft.providerId, draft.routeDistance, draft.routeDuration)
   const titles = [
     "Choose your vehicle",
     "What happened?",
@@ -62,6 +64,55 @@ export default function BookingFlow({
     setError("")
     change(changes)
   }
+  // Geocode addresses and compute route when leaving step 3
+  const computeRoute = async () => {
+    if (!hasMapbox()) return
+    setRouteLoading(true)
+    try {
+      const [pickupResults, destResults] = await Promise.all([
+        forwardGeocode(draft.pickup),
+        isTow(draft.service) && draft.destination
+          ? forwardGeocode(draft.destination)
+          : Promise.resolve([]),
+      ])
+      const pickupCoords = pickupResults[0]?.center as [number, number] | undefined
+      const destCoords = destResults[0]?.center as [number, number] | undefined
+      const updates: Partial<Draft> = {}
+      if (pickupCoords) updates.pickupCoords = pickupCoords
+      if (destCoords) updates.destinationCoords = destCoords
+
+      if (pickupCoords && destCoords) {
+        const route = await getRoute(
+          { lng: pickupCoords[0], lat: pickupCoords[1] },
+          { lng: destCoords[0], lat: destCoords[1] },
+        )
+        if (route) {
+          updates.routeDistance = route.distance
+          updates.routeDuration = route.duration
+        }
+      } else if (pickupCoords && !isTow(draft.service)) {
+        // Non-tow services: use a nominal 5 km operator travel distance
+        updates.routeDistance = 5000
+        updates.routeDuration = 600
+      }
+      if (Object.keys(updates).length) change(updates)
+    } catch {
+      // Geocoding failed silently — fall back to flat-rate pricing
+    } finally {
+      setRouteLoading(false)
+    }
+  }
+
+  // Trigger route computation when step changes to 4
+  const prevStepRef = useRef(step)
+  useEffect(() => {
+    if (step === 4 && prevStepRef.current === 3) {
+      void computeRoute()
+    }
+    prevStepRef.current = step
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step])
+
   const next = (event: FormEvent) => {
     event.preventDefault()
     if (pending) return
@@ -276,7 +327,7 @@ export default function BookingFlow({
                     <ProviderHeader name={item.name} />
                     <span className="provider-detail">
                       {item.area} ·{" "}
-                      {money(quoteFor(draft.service, item.id).total)} est.
+                      {money(quoteFor(draft.service, item.id, draft.routeDistance, draft.routeDuration).total)} est.
                       total
                     </span>
                   </button>
@@ -339,7 +390,8 @@ export default function BookingFlow({
                   </p>
                 )}
               </div>
-              <Fare quote={quote} />
+              <Fare quote={quote} distanceKm={quote.distanceKm} durationMin={quote.durationMin} />
+              {routeLoading && <p className="page-copy">Calculating route-based fare…</p>}
               <p className="page-copy spaced">
                 Estimated fare based on service type and distance. Final amount may vary depending on actual route conditions.
               </p>

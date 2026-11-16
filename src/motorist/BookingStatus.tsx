@@ -423,7 +423,7 @@ export function Receipt({
             </>
           ) : (
             <>
-              <Fare quote={booking.quote} />
+              <Fare quote={booking.quote} distanceKm={booking.quote.distanceKm} durationMin={booking.quote.durationMin} />
               <p className="demo-notice">
                 Digital receipt. Payment integration coming soon.
               </p>

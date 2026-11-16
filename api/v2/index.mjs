@@ -4,6 +4,53 @@ import { isDeepStrictEqual } from "node:util";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+//#region src/shared/fareCalculator.ts
+/** Per-km rates by service type */
+var PER_KM_RATES = {
+	"Tow Truck": 45,
+	"Emergency Tow": 55,
+	"Jump Start": 20,
+	"Flat Tire": 20,
+	"Fuel Refill": 15
+};
+/** Base fares by service type */
+var BASE_FARES = {
+	"Tow Truck": 800,
+	"Emergency Tow": 1e3,
+	"Jump Start": 500,
+	"Flat Tire": 600,
+	"Fuel Refill": 400
+};
+/** Platform fee percentage */
+var PLATFORM_FEE_RATE = .05;
+/** Minimum platform fee */
+var MIN_PLATFORM_FEE = 50;
+/**
+* Calculate fare based on route distance.
+* @param service - service type
+* @param distanceMeters - route distance in meters (from Mapbox Directions)
+* @param durationSeconds - route duration in seconds
+* @param providerAdjustment - per-provider price modifier
+*/
+function calculateFare(service, distanceMeters, durationSeconds, providerAdjustment = 0) {
+	const distanceKm = distanceMeters / 1e3;
+	const durationMin = Math.round(durationSeconds / 60);
+	const base = BASE_FARES[service] ?? 800;
+	const perKm = PER_KM_RATES[service] ?? 30;
+	const travel = Math.round(distanceKm * perKm);
+	const subtotal = base + travel + providerAdjustment;
+	const fee = Math.max(MIN_PLATFORM_FEE, Math.round(subtotal * PLATFORM_FEE_RATE));
+	return {
+		base,
+		travel,
+		fee,
+		provider: providerAdjustment,
+		total: subtotal + fee,
+		distanceKm: Math.round(distanceKm * 10) / 10,
+		durationMin
+	};
+}
+//#endregion
 //#region src/motorist/model.ts
 var vehicleTypes = [
 	"Sedan",
@@ -71,17 +118,29 @@ var providers = [{
 }];
 var isTow = (service) => service === "Tow Truck" || service === "Emergency Tow";
 var normalizePlate = (plate) => plate.toUpperCase().replace(/[^A-Z0-9]/g, "");
-function quoteFor(service, providerId) {
+function quoteFor(service, providerId, routeDistance, routeDuration) {
+	const adjustment = providers.find((item) => item.id === providerId)?.adjustment ?? 0;
+	if (routeDistance != null && routeDuration != null) {
+		const fare = calculateFare(service, routeDistance, routeDuration, adjustment);
+		return {
+			base: fare.base,
+			travel: fare.travel,
+			fee: fare.fee,
+			provider: fare.provider,
+			total: fare.total,
+			distanceKm: fare.distanceKm,
+			durationMin: fare.durationMin
+		};
+	}
 	const base = services.find((item) => item.name === service)?.base ?? 1200;
 	const travel = isTow(service) ? 390 : 0;
 	const fee = 95;
-	const provider = providers.find((item) => item.id === providerId)?.adjustment ?? 0;
 	return {
 		base,
 		travel,
 		fee,
-		provider,
-		total: base + travel + fee + provider
+		provider: adjustment,
+		total: base + travel + fee + adjustment
 	};
 }
 function validateVehicle(vehicle, vehicles) {
@@ -116,7 +175,7 @@ function makeBooking(draft, vehicles) {
 		const error = validateStep(step, draft, vehicles);
 		if (error) throw new Error(error);
 	}
-	const { vehicleId, ...details } = draft;
+	const { vehicleId, pickupCoords, destinationCoords, routeDistance, routeDuration, ...details } = draft;
 	return {
 		...details,
 		pickup: draft.pickup.trim(),
@@ -125,7 +184,7 @@ function makeBooking(draft, vehicles) {
 		id: `LT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
 		vehicle: { ...vehicles.find((vehicle) => vehicle.id === vehicleId) },
 		providerName: providers.find((provider) => provider.id === draft.providerId).name,
-		quote: quoteFor(draft.service, draft.providerId),
+		quote: quoteFor(draft.service, draft.providerId, routeDistance, routeDuration),
 		createdAt: (/* @__PURE__ */ new Date()).toISOString(),
 		status: "searching",
 		stage: 0

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Avatar, Badge, BottomNav, Icon, MapCanvas, PhoneFrame } from "../components/ui"
 import { bookingStages, isActive, progressLabel, type Actor, type DispatchBooking } from "../shared/dispatch"
 import { money, vehicleName } from "../motorist/model"
 import { ConfirmDialog, IllustrativeMap } from "../motorist/components"
+import { forwardGeocode, hasMapbox } from "../components/mapUtils"
 import type { DispatchClient } from "../shared/useDispatch"
 import { useOperatorBroadcast } from "../shared/useTracking"
 import "./operator.css"
@@ -251,6 +252,9 @@ function JobProgress({ job, act, pending }: {
 
   // Track own GPS position for ETA display
   const [myPosition, setMyPosition] = useState<{ lng: number; lat: number } | null>(null)
+  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const geocodedRef = useRef("")
+
   useEffect(() => {
     if (!navigator.geolocation) return
     const id = navigator.geolocation.watchPosition(
@@ -261,13 +265,25 @@ function JobProgress({ job, act, pending }: {
     return () => navigator.geolocation.clearWatch(id)
   }, [])
 
-  // Compute ETA to pickup (rough estimate)
-  const etaMinutes = myPosition ? (() => {
-    // Simple haversine distance → ETA at ~30 km/h city speed
+  // Geocode pickup address to get real coordinates for ETA
+  useEffect(() => {
+    if (!job.pickup || geocodedRef.current === job.pickup) return
+    geocodedRef.current = job.pickup
+    if (!hasMapbox()) return
+    void forwardGeocode(job.pickup).then((results) => {
+      if (results[0]) {
+        setPickupCoords({ lng: results[0].center[0], lat: results[0].center[1] })
+      }
+    })
+  }, [job.pickup])
+
+  // Compute ETA to pickup using geocoded coordinates
+  const etaMinutes = myPosition && pickupCoords ? (() => {
+    // Haversine distance → ETA at ~30 km/h city speed
     const R = 6371
-    const dLat = (14.6 - myPosition.lat) * Math.PI / 180 // fallback lat for pickup
-    const dLng = (121.0 - myPosition.lng) * Math.PI / 180
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(myPosition.lat * Math.PI / 180) * Math.cos(14.6 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+    const dLat = (pickupCoords.lat - myPosition.lat) * Math.PI / 180
+    const dLng = (pickupCoords.lng - myPosition.lng) * Math.PI / 180
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(myPosition.lat * Math.PI / 180) * Math.cos(pickupCoords.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
     const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
     return Math.max(1, Math.round(dist * 1.4 / 30 * 60))
   })() : null

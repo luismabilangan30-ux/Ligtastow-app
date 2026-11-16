@@ -115,16 +115,22 @@ export function VehicleSummary({ vehicle }: { vehicle: Vehicle }) {
     </>
   )
 }
-export function Fare({ quote }: { quote: Quote }) {
+export function Fare({ quote, distanceKm, durationMin }: { quote: Quote; distanceKm?: number; durationMin?: number }) {
   return (
     <div className="fare-card">
       <div className="fare-title">
         <strong>Estimated fare</strong>
-        <Badge>Estimate</Badge>
+        <Badge>{distanceKm ? "Route-based" : "Estimate"}</Badge>
       </div>
+      {distanceKm != null && durationMin != null && (
+        <div className="fare-route-info">
+          <span><Icon name="route" size={14} /> {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`}</span>
+          <span><Icon name="clock" size={14} /> {durationMin < 60 ? `${durationMin} min` : `${Math.floor(durationMin / 60)}h ${durationMin % 60}m`}</span>
+        </div>
+      )}
       {[
         ["Service base", quote.base],
-        ["Travel charge", quote.travel],
+        [distanceKm ? `Travel (${distanceKm.toFixed(1)} km)` : "Travel charge", quote.travel],
         ["Provider adjustment", quote.provider],
         ["Platform fee", quote.fee],
       ].map(([label, amount]) => (

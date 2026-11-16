@@ -94,6 +94,14 @@ export type Draft = {
   pickup: string
   destination: string
   providerId: string
+  /** Geocoded pickup coordinates (set when Mapbox is available) */
+  pickupCoords?: [number, number]
+  /** Geocoded destination coordinates (set when Mapbox is available) */
+  destinationCoords?: [number, number]
+  /** Route distance in meters from Mapbox Directions */
+  routeDistance?: number
+  /** Route duration in seconds from Mapbox Directions */
+  routeDuration?: number
 }
 export type Quote = {
   base: number
@@ -101,6 +109,8 @@ export type Quote = {
   fee: number
   provider: number
   total: number
+  distanceKm?: number
+  durationMin?: number
 }
 export type Booking = Omit<Draft, "vehicleId"> & {
   id: string
@@ -136,13 +146,35 @@ export const isTow = (service: Service) =>
   service === "Tow Truck" || service === "Emergency Tow"
 export const normalizePlate = (plate: string) =>
   plate.toUpperCase().replace(/[^A-Z0-9]/g, "")
-export function quoteFor(service: Service, providerId: string): Quote {
+import { calculateFare } from "../shared/fareCalculator"
+
+export function quoteFor(
+  service: Service,
+  providerId: string,
+  routeDistance?: number,
+  routeDuration?: number,
+): Quote {
+  const adjustment =
+    providers.find((item) => item.id === providerId)?.adjustment ?? 0
+
+  if (routeDistance != null && routeDuration != null) {
+    const fare = calculateFare(service, routeDistance, routeDuration, adjustment)
+    return {
+      base: fare.base,
+      travel: fare.travel,
+      fee: fare.fee,
+      provider: fare.provider,
+      total: fare.total,
+      distanceKm: fare.distanceKm,
+      durationMin: fare.durationMin,
+    }
+  }
+
+  // Flat-rate fallback when no route data is available
   const base = services.find((item) => item.name === service)?.base ?? 1200
   const travel = isTow(service) ? 390 : 0
   const fee = 95
-  const provider =
-    providers.find((item) => item.id === providerId)?.adjustment ?? 0
-  return { base, travel, fee, provider, total: base + travel + fee + provider }
+  return { base, travel, fee, provider: adjustment, total: base + travel + fee + adjustment }
 }
 export function newDraft(
   vehicles: Vehicle[],
@@ -236,7 +268,7 @@ export function makeBooking(draft: Draft, vehicles: Vehicle[]): Booking {
     const error = validateStep(step, draft, vehicles)
     if (error) throw new Error(error)
   }
-  const { vehicleId, ...details } = draft
+  const { vehicleId, pickupCoords, destinationCoords, routeDistance, routeDuration, ...details } = draft
   return {
     ...details,
     pickup: draft.pickup.trim(),
@@ -249,7 +281,7 @@ export function makeBooking(draft: Draft, vehicles: Vehicle[]): Booking {
     providerName: providers.find(
       (provider) => provider.id === draft.providerId,
     )!.name,
-    quote: quoteFor(draft.service, draft.providerId),
+    quote: quoteFor(draft.service, draft.providerId, routeDistance, routeDuration),
     createdAt: new Date().toISOString(),
     status: "searching",
     stage: 0,
