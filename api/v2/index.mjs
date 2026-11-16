@@ -377,6 +377,9 @@ var DispatchService = class {
 			"destination",
 			"providerId"
 		].map((key) => [key, raw[key]]));
+		const isCoord = (v) => Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number" && Number.isFinite(n));
+		if (isCoord(raw.pickupCoords)) draft.pickupCoords = raw.pickupCoords;
+		if (isCoord(raw.destinationCoords)) draft.destinationCoords = raw.destinationCoords;
 		if (draft.vehicleId !== input.vehicle.id) fail(400, "INVALID_REQUEST", "The selected vehicle does not match the request.");
 		const payload = JSON.stringify({
 			draft,
@@ -602,6 +605,8 @@ async function bookings(client, where, values) {
 		destination: row.destination,
 		status: row.status,
 		stage: row.stage,
+		pickupCoords: row.pickup_coords ? [row.pickup_coords[0], row.pickup_coords[1]] : void 0,
+		destinationCoords: row.destination_coords ? [row.destination_coords[0], row.destination_coords[1]] : void 0,
 		version: row.version,
 		createdAt: date(row.created_at),
 		updatedAt: date(row.updated_at),
@@ -712,6 +717,9 @@ var PostgresDispatch = class {
 			];
 			if (!keys.every((key) => typeof raw[key] === "string") || !uuid.test(raw.vehicleId)) invalid("Choose a saved vehicle and complete the booking details.");
 			const draft = Object.fromEntries(keys.map((key) => [key, raw[key]]));
+			const isCoord = (v) => Array.isArray(v) && v.length === 2 && v.every((n) => typeof n === "number" && Number.isFinite(n));
+			if (isCoord(raw.pickupCoords)) draft.pickupCoords = raw.pickupCoords;
+			if (isCoord(raw.destinationCoords)) draft.destinationCoords = raw.destinationCoords;
 			const payload = { draft };
 			await client.query("select id from public.profiles where id=$1 for update", [user.id]);
 			const { rows: [prior] } = await client.query("select booking_id, payload from app_private.booking_requests where motorist_id=$1 and request_id=$2", [user.id, input.requestId]);
@@ -733,8 +741,8 @@ var PostgresDispatch = class {
 			});
 			booking.providerName = provider.name;
 			await client.query(`insert into public.bookings(id,motorist_id,provider_id,provider_name_snapshot,service,vehicle_snapshot,
-        incident,notes,pickup,destination,base_centavos,travel_centavos,provider_centavos,platform_centavos,created_at,updated_at)
-        values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`, [
+        incident,notes,pickup,destination,pickup_coords,destination_coords,base_centavos,travel_centavos,provider_centavos,platform_centavos,created_at,updated_at)
+        values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`, [
 				dbId(booking.id),
 				user.id,
 				booking.providerId,
@@ -745,6 +753,8 @@ var PostgresDispatch = class {
 				booking.notes,
 				booking.pickup,
 				booking.destination,
+				booking.pickupCoords ? `{${booking.pickupCoords[0]},${booking.pickupCoords[1]}}` : null,
+				booking.destinationCoords ? `{${booking.destinationCoords[0]},${booking.destinationCoords[1]}}` : null,
 				Math.round(booking.quote.base * 100),
 				Math.round(booking.quote.travel * 100),
 				Math.round(booking.quote.provider * 100),

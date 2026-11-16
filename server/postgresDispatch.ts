@@ -73,6 +73,8 @@ async function bookings(client: SqlClient, where: string, values: unknown[]): Pr
     operatorId: row.operator_id ?? undefined, operatorName: row.operator_name ?? undefined,
     service: row.service, vehicle: row.vehicle_snapshot, incident: row.incident, notes: row.notes,
     pickup: row.pickup, destination: row.destination, status: row.status, stage: row.stage,
+    pickupCoords: row.pickup_coords ? [row.pickup_coords[0], row.pickup_coords[1]] as [number, number] : undefined,
+    destinationCoords: row.destination_coords ? [row.destination_coords[0], row.destination_coords[1]] as [number, number] : undefined,
     version: row.version, createdAt: date(row.created_at), updatedAt: date(row.updated_at),
     cancellationReason: row.cancellation_reason ?? undefined, rating: row.rating ?? undefined,
     declinedOperatorIds: row.declines, events: row.events,
@@ -138,6 +140,11 @@ export class PostgresDispatch {
       const keys = ["service", "vehicleId", "incident", "notes", "pickup", "destination", "providerId"]
       if (!keys.every(key => typeof raw[key] === "string") || !uuid.test(raw.vehicleId as string)) invalid("Choose a saved vehicle and complete the booking details.")
       const draft = Object.fromEntries(keys.map(key => [key, raw[key]])) as Draft
+      // Preserve optional GPS coordinates when valid [lng, lat] tuples.
+      const isCoord = (v: unknown): v is [number, number] =>
+        Array.isArray(v) && v.length === 2 && v.every(n => typeof n === "number" && Number.isFinite(n))
+      if (isCoord(raw.pickupCoords)) draft.pickupCoords = raw.pickupCoords
+      if (isCoord(raw.destinationCoords)) draft.destinationCoords = raw.destinationCoords
       const payload = { draft }
       // Serialize this motorist's creation attempts, including retries with a shared request ID.
       await client.query("select id from public.profiles where id=$1 for update", [user.id])
@@ -155,10 +162,13 @@ export class PostgresDispatch {
       const booking = engine.create(actor, { draft, vehicle: vehicleRow(vehicle), requestId: input.requestId })
       booking.providerName = provider.name
       await client.query(`insert into public.bookings(id,motorist_id,provider_id,provider_name_snapshot,service,vehicle_snapshot,
-        incident,notes,pickup,destination,base_centavos,travel_centavos,provider_centavos,platform_centavos,created_at,updated_at)
-        values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+        incident,notes,pickup,destination,pickup_coords,destination_coords,base_centavos,travel_centavos,provider_centavos,platform_centavos,created_at,updated_at)
+        values ($1,$2,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)`,
       [dbId(booking.id), user.id, booking.providerId, booking.providerName, booking.service, JSON.stringify(booking.vehicle),
-        booking.incident, booking.notes, booking.pickup, booking.destination, Math.round(booking.quote.base*100),
+        booking.incident, booking.notes, booking.pickup, booking.destination,
+        booking.pickupCoords ? `{${booking.pickupCoords[0]},${booking.pickupCoords[1]}}` : null,
+        booking.destinationCoords ? `{${booking.destinationCoords[0]},${booking.destinationCoords[1]}}` : null,
+        Math.round(booking.quote.base*100),
         Math.round(booking.quote.travel*100), Math.round(booking.quote.provider*100), Math.round(booking.quote.fee*100), booking.createdAt, booking.updatedAt])
       await addEvent(client, booking)
       await client.query("insert into app_private.booking_requests(motorist_id,request_id,booking_id,payload) values ($1,$2,$3,$4::jsonb)",

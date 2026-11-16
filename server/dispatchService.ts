@@ -170,6 +170,11 @@ export class DispatchService {
         "providerId",
       ].map((key) => [key, raw[key]]),
     ) as Draft
+    // Preserve optional GPS coordinates when valid [lng, lat] tuples.
+    const isCoord = (v: unknown): v is [number, number] =>
+      Array.isArray(v) && v.length === 2 && v.every(n => typeof n === "number" && Number.isFinite(n))
+    if (isCoord(raw.pickupCoords)) draft.pickupCoords = raw.pickupCoords
+    if (isCoord(raw.destinationCoords)) draft.destinationCoords = raw.destinationCoords
     if (draft.vehicleId !== input.vehicle.id)
       fail(
         400,
