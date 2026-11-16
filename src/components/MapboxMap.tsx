@@ -117,7 +117,7 @@ export default function MapboxMap({
       const el = document.createElement("div")
       el.className = "mapbox-marker-pickup"
       el.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.3 21.7 0 14 0z" fill="#22c55e"/><circle cx="14" cy="14" r="6" fill="#fff"/></svg>`
-      markersRef.current.pickup = new mapboxgl.Marker({ element: el })
+      markersRef.current.pickup = new mapboxgl.Marker({ element: el, anchor: "bottom" })
         .setLngLat(pickup)
         .addTo(map)
     }
@@ -135,7 +135,7 @@ export default function MapboxMap({
       const el = document.createElement("div")
       el.className = "mapbox-marker-destination"
       el.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.3 21.7 0 14 0z" fill="#ef4444"/><circle cx="14" cy="14" r="6" fill="#fff"/></svg>`
-      markersRef.current.destination = new mapboxgl.Marker({ element: el })
+      markersRef.current.destination = new mapboxgl.Marker({ element: el, anchor: "bottom" })
         .setLngLat(destination)
         .addTo(map)
     }
