@@ -10,7 +10,7 @@ import {
   ProviderHeader,
 } from "./components"
 import { useOperatorTracking } from "../shared/useTracking"
-import { hasMapbox, getRoute, watchPosition, type GeoPosition } from "../components/mapUtils"
+import { hasMapbox, getRoute, forwardGeocode, type GeoPosition } from "../components/mapUtils"
 import {
   isTow,
   money,
@@ -90,26 +90,31 @@ export function ActiveBooking({
   const activeBookingId = booking?.status === "assigned" ? booking.id : undefined
   const { operatorPosition, eta } = useOperatorTracking(activeBookingId)
 
-  // Track motorist's own GPS for map pin + route line
-  const [motoristPosition, setMotoristPosition] = useState<[number, number] | null>(null)
-  useEffect(() => {
-    const stop = watchPosition(
-      (pos) => setMotoristPosition([pos.lng, pos.lat]),
-    )
-    return stop
-  }, [])
+  // Geocode the booking's pickup address for the green pin
+  const [pickupPin, setPickupPin] = useState<[number, number] | null>(null)
+  const geocodedRef = useRef("")
 
-  // Compute route line from operator to motorist (throttled)
+  useEffect(() => {
+    const address = booking?.pickup
+    if (!address || geocodedRef.current === address || !hasMapbox()) return
+    geocodedRef.current = address
+    void forwardGeocode(address).then((results) => {
+      if (results[0]) {
+        setPickupPin([results[0].center[0], results[0].center[1]])
+      }
+    })
+  }, [booking?.pickup])
+
+  // Compute route line from operator to pickup (throttled)
   const [routeLine, setRouteLine] = useState<{ type: "LineString"; coordinates: [number, number][] } | null>(null)
   const routeThrottle = useRef<ReturnType<typeof setTimeout>>(undefined)
   const lastRouteKey = useRef("")
 
   useEffect(() => {
-    if (!operatorPosition || !motoristPosition || !hasMapbox()) {
+    if (!operatorPosition || !pickupPin || !hasMapbox()) {
       setRouteLine(null)
       return
     }
-    // Throttle: recompute only if operator moved significantly or every 20s
     const key = `${operatorPosition[0].toFixed(3)},${operatorPosition[1].toFixed(3)}`
     if (key === lastRouteKey.current) return
     if (routeThrottle.current) clearTimeout(routeThrottle.current)
@@ -117,13 +122,13 @@ export function ActiveBooking({
       lastRouteKey.current = key
       void getRoute(
         { lng: operatorPosition[0], lat: operatorPosition[1] },
-        { lng: motoristPosition[0], lat: motoristPosition[1] },
+        { lng: pickupPin[0], lat: pickupPin[1] },
       ).then((result) => {
         if (result) setRouteLine(result.geometry as { type: "LineString"; coordinates: [number, number][] })
       })
-    }, 2000) // 2s debounce after operator moves
+    }, 2000)
     return () => { if (routeThrottle.current) clearTimeout(routeThrottle.current) }
-  }, [operatorPosition, motoristPosition])
+  }, [operatorPosition, pickupPin])
   return (
     <Page
       title={searching ? "Finding your operator" : "Live tracking"}
@@ -159,7 +164,7 @@ export function ActiveBooking({
               <IllustrativeMap
                 tracking
                 operator={operatorPosition}
-                pickup={motoristPosition}
+                pickup={pickupPin}
                 route={routeLine}
                 showUserLocation
               />
