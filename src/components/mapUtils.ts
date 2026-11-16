@@ -84,10 +84,18 @@ export async function reverseGeocode(
   return data.features?.[0]?.place_name ?? ""
 }
 
+export interface RouteStep {
+  instruction: string
+  distance: number   // meters
+  duration: number   // seconds
+  maneuver: string   // e.g. "turn-right", "straight", "arrive"
+}
+
 export interface RouteInfo {
   geometry: { type: "LineString"; coordinates: [number, number][] }
   distance: number
   duration: number
+  steps: RouteStep[]
 }
 
 export async function getRoute(
@@ -95,15 +103,24 @@ export async function getRoute(
   destination: GeoPosition,
 ): Promise<RouteInfo | null> {
   if (!MAPBOX_TOKEN) return null
-  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=full`
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?access_token=${MAPBOX_TOKEN}&geometries=geojson&overview=full&steps=true&language=en`
   const res = await fetch(url)
   if (!res.ok) return null
   const data = await res.json()
   const route = data.routes?.[0]
   if (!route) return null
+  const steps: RouteStep[] = (route.legs ?? []).flatMap((leg: any) =>
+    (leg.steps ?? []).map((s: any) => ({
+      instruction: s.maneuver?.instruction ?? "",
+      distance: s.distance ?? 0,
+      duration: s.duration ?? 0,
+      maneuver: s.maneuver?.type ?? "",
+    }))
+  )
   return {
     geometry: route.geometry,
     distance: route.distance,
     duration: route.duration,
+    steps,
   }
 }

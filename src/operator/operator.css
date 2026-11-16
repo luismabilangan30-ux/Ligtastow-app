@@ -380,3 +380,111 @@
   border-radius: 20px;
   white-space: nowrap;
 }
+
+
+/* ── Route Summary Bar ──────────────────────────────────── */
+.op-route-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 10px 16px;
+  margin: 0 0 10px;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3730a3;
+}
+.op-route-summary span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.op-route-summary svg {
+  color: #4f46e5;
+}
+
+/* ── Turn-by-Turn Directions ────────────────────────────── */
+.op-directions {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.op-directions h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin: 0 0 12px;
+  color: var(--text);
+}
+.op-directions h3 svg {
+  color: var(--brand);
+}
+.op-directions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.op-direction-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+  transition: background .12s;
+}
+.op-direction-step.current {
+  background: #eef2ff;
+  font-weight: 600;
+}
+.op-direction-step + .op-direction-step {
+  border-top: 1px solid var(--border);
+}
+.op-direction-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f3f4f6;
+  font-size: 14px;
+  color: #374151;
+}
+.op-direction-step.current .op-direction-icon {
+  background: #4f46e5;
+  color: #fff;
+}
+.op-direction-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.op-direction-text small {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Taller interactive map for operator job */
+.op-job-map {
+  height: 200px;
+}
+.op-job-map .mapbox-container {
+  height: 100%;
+  border-radius: 0 0 var(--radius) var(--radius);
+}

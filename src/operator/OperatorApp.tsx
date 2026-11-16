@@ -3,7 +3,7 @@ import { Avatar, Badge, BottomNav, Icon, MapCanvas, PhoneFrame } from "../compon
 import { bookingStages, isActive, progressLabel, type Actor, type DispatchBooking } from "../shared/dispatch"
 import { money, vehicleName } from "../motorist/model"
 import { ConfirmDialog, IllustrativeMap } from "../motorist/components"
-import { forwardGeocode, getRoute, hasMapbox } from "../components/mapUtils"
+import { forwardGeocode, getRoute, hasMapbox, type RouteStep } from "../components/mapUtils"
 import type { DispatchClient } from "../shared/useDispatch"
 import { useOperatorBroadcast } from "../shared/useTracking"
 import "./operator.css"
@@ -288,14 +288,20 @@ function JobProgress({ job, act, pending }: {
     return Math.max(1, Math.round(dist * 1.4 / 30 * 60))
   })() : null
 
-  // Compute route line from operator to motorist's pickup
+  // Compute route line + directions from operator to motorist's pickup
   const [routeLine, setRouteLine] = useState<{ type: "LineString"; coordinates: [number, number][] } | null>(null)
+  const [routeSteps, setRouteSteps] = useState<RouteStep[]>([])
+  const [routeDistance, setRouteDistance] = useState<number | null>(null)
+  const [routeDuration, setRouteDuration] = useState<number | null>(null)
   const routeThrottle = useRef<ReturnType<typeof setTimeout>>(undefined)
   const lastRouteKey = useRef("")
 
   useEffect(() => {
     if (!myPosition || !pickupCoords || !hasMapbox()) {
       setRouteLine(null)
+      setRouteSteps([])
+      setRouteDistance(null)
+      setRouteDuration(null)
       return
     }
     const key = `${myPosition.lng.toFixed(3)},${myPosition.lat.toFixed(3)}`
@@ -304,7 +310,12 @@ function JobProgress({ job, act, pending }: {
     routeThrottle.current = setTimeout(() => {
       lastRouteKey.current = key
       void getRoute(myPosition, pickupCoords).then((result) => {
-        if (result) setRouteLine(result.geometry as { type: "LineString"; coordinates: [number, number][] })
+        if (result) {
+          setRouteLine(result.geometry as { type: "LineString"; coordinates: [number, number][] })
+          setRouteSteps(result.steps.filter(s => s.instruction))
+          setRouteDistance(result.distance)
+          setRouteDuration(result.duration)
+        }
       })
     }, 2000)
     return () => { if (routeThrottle.current) clearTimeout(routeThrottle.current) }
@@ -315,12 +326,38 @@ function JobProgress({ job, act, pending }: {
     ? [pickupCoords.lng, pickupCoords.lat]
     : null
 
+  // Format helpers
+  const fmtDist = (m: number) => m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`
+  const fmtTime = (s: number) => {
+    const min = Math.round(s / 60)
+    return min < 60 ? `${min} min` : `${Math.floor(min / 60)}h ${min % 60}m`
+  }
+  const maneuverIcon = (m: string) => {
+    if (m.includes("left")) return "↰"
+    if (m.includes("right")) return "↱"
+    if (m.includes("arrive")) return "⬤"
+    if (m.includes("depart")) return "▶"
+    if (m.includes("roundabout") || m.includes("rotary")) return "↻"
+    if (m.includes("merge")) return "⤵"
+    if (m.includes("fork")) return "⑂"
+    if (m.includes("uturn") || m.includes("u-turn")) return "↩"
+    return "↑"
+  }
+
   return (
     <>
-      {/* Map */}
+      {/* Map — fully interactive */}
       <div className="op-job-map">
-        <IllustrativeMap tracking showUserLocation pickup={pickupPin} route={routeLine} />
+        <IllustrativeMap showUserLocation pickup={pickupPin} route={routeLine} />
       </div>
+
+      {/* Route summary bar */}
+      {routeDistance !== null && routeDuration !== null && (
+        <div className="op-route-summary">
+          <span><Icon name="route" size={14} /> {fmtDist(routeDistance)}</span>
+          <span><Icon name="clock" size={14} /> {fmtTime(routeDuration)}</span>
+        </div>
+      )}
 
       {/* GPS Tracking Status */}
       <div className="op-tracking-card">
@@ -348,6 +385,24 @@ function JobProgress({ job, act, pending }: {
         <div><Icon name="pin" size={16} /><span><small>PICKUP</small><strong>{job.pickup}</strong></span></div>
         {job.destination && <div><Icon name="pin" size={16} /><span><small>DROP-OFF</small><strong>{job.destination}</strong></span></div>}
       </div>
+
+      {/* Turn-by-turn directions */}
+      {routeSteps.length > 0 && (
+        <div className="op-directions">
+          <h3><Icon name="route" size={16} /> Directions to pickup</h3>
+          <ol className="op-directions-list">
+            {routeSteps.map((s, i) => (
+              <li key={i} className={`op-direction-step ${i === 0 ? "current" : ""}`}>
+                <span className="op-direction-icon">{maneuverIcon(s.maneuver)}</span>
+                <span className="op-direction-text">
+                  <span>{s.instruction}</span>
+                  {s.distance > 0 && <small>{fmtDist(s.distance)}</small>}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
 
       {/* Service + fare */}
       <div className="op-job-info">
