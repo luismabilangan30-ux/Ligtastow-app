@@ -28,7 +28,7 @@ export default function MotoristHome({
   return (
     <PhoneFrame>
       <div className="home-map">
-        <IllustrativeMap />
+        <IllustrativeMap showUserLocation />
         <div className="mobile-top">
           <button className="profile-chip" onClick={() => navigate("profile")}>
             <Avatar initials={profileInitials(profile.name)} />

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react"
+import { useEffect, useRef, lazy, Suspense, type ReactNode } from "react"
 import {
   Avatar,
   Badge,
@@ -7,7 +7,11 @@ import {
   MapCanvas,
   PhoneFrame,
 } from "../components/ui"
+import { hasMapbox, type GeoPosition } from "../components/mapUtils"
+import "../components/mapbox.css"
 import { money, type Quote, type Vehicle, vehicleName } from "./model"
+
+const LazyMapboxMap = lazy(() => import("../components/MapboxMap"))
 
 export function Page({
   title,
@@ -37,7 +41,39 @@ export function Page({
     </PhoneFrame>
   )
 }
-export function IllustrativeMap({ tracking = false }: { tracking?: boolean }) {
+export function IllustrativeMap({
+  tracking = false,
+  pickup,
+  destination,
+  operator,
+  route,
+  showUserLocation = false,
+  onMapClick,
+}: {
+  tracking?: boolean
+  pickup?: [number, number] | null
+  destination?: [number, number] | null
+  operator?: [number, number] | null
+  route?: { type: "LineString"; coordinates: [number, number][] } | null
+  showUserLocation?: boolean
+  onMapClick?: (pos: GeoPosition) => void
+}) {
+  if (hasMapbox()) {
+    return (
+      <Suspense fallback={<div className="illustrative-map" role="img" aria-label="Loading map…" />}>
+        <LazyMapboxMap
+          tracking={tracking}
+          pickup={pickup}
+          destination={destination}
+          operator={operator}
+          route={route}
+          showUserLocation={showUserLocation}
+          onMapClick={onMapClick}
+          interactive={!tracking || !!pickup}
+        />
+      </Suspense>
+    )
+  }
   return (
     <div
       className="illustrative-map"

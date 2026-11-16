@@ -50,7 +50,7 @@ function OperatorHome({ actor, api, myJob, requests, completed, notice, navigate
   return (
     <PhoneFrame>
       <div className="home-map operator-home-map">
-        <IllustrativeMap />
+        <IllustrativeMap showUserLocation />
         <div className="mobile-top">
           <button className="profile-chip" onClick={() => navigate("profile")}>
             <Avatar initials={actor.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2)} tone="dark" />
