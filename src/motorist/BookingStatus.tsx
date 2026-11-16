@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { bookingStages, progressLabel, type DispatchBooking } from "../shared/dispatch"
 import { Badge, BottomNav, Button, Icon } from "../components/ui"
 import {
@@ -10,6 +10,7 @@ import {
   ProviderHeader,
 } from "./components"
 import { useOperatorTracking } from "../shared/useTracking"
+import { hasMapbox, getRoute, watchPosition, type GeoPosition } from "../components/mapUtils"
 import {
   isTow,
   money,
@@ -88,6 +89,41 @@ export function ActiveBooking({
   // Live operator tracking
   const activeBookingId = booking?.status === "assigned" ? booking.id : undefined
   const { operatorPosition, eta } = useOperatorTracking(activeBookingId)
+
+  // Track motorist's own GPS for map pin + route line
+  const [motoristPosition, setMotoristPosition] = useState<[number, number] | null>(null)
+  useEffect(() => {
+    const stop = watchPosition(
+      (pos) => setMotoristPosition([pos.lng, pos.lat]),
+    )
+    return stop
+  }, [])
+
+  // Compute route line from operator to motorist (throttled)
+  const [routeLine, setRouteLine] = useState<{ type: "LineString"; coordinates: [number, number][] } | null>(null)
+  const routeThrottle = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const lastRouteKey = useRef("")
+
+  useEffect(() => {
+    if (!operatorPosition || !motoristPosition || !hasMapbox()) {
+      setRouteLine(null)
+      return
+    }
+    // Throttle: recompute only if operator moved significantly or every 20s
+    const key = `${operatorPosition[0].toFixed(3)},${operatorPosition[1].toFixed(3)}`
+    if (key === lastRouteKey.current) return
+    if (routeThrottle.current) clearTimeout(routeThrottle.current)
+    routeThrottle.current = setTimeout(() => {
+      lastRouteKey.current = key
+      void getRoute(
+        { lng: operatorPosition[0], lat: operatorPosition[1] },
+        { lng: motoristPosition[0], lat: motoristPosition[1] },
+      ).then((result) => {
+        if (result) setRouteLine(result.geometry as { type: "LineString"; coordinates: [number, number][] })
+      })
+    }, 2000) // 2s debounce after operator moves
+    return () => { if (routeThrottle.current) clearTimeout(routeThrottle.current) }
+  }, [operatorPosition, motoristPosition])
   return (
     <Page
       title={searching ? "Finding your operator" : "Live tracking"}
@@ -120,7 +156,13 @@ export function ActiveBooking({
             </>
           ) : (
             <>
-              <IllustrativeMap tracking operator={operatorPosition} showUserLocation />
+              <IllustrativeMap
+                tracking
+                operator={operatorPosition}
+                pickup={motoristPosition}
+                route={routeLine}
+                showUserLocation
+              />
 
               {/* Live tracking status card */}
               <div className="tracking-card">

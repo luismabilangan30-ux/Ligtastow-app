@@ -3,7 +3,7 @@ import { Avatar, Badge, BottomNav, Icon, MapCanvas, PhoneFrame } from "../compon
 import { bookingStages, isActive, progressLabel, type Actor, type DispatchBooking } from "../shared/dispatch"
 import { money, vehicleName } from "../motorist/model"
 import { ConfirmDialog, IllustrativeMap } from "../motorist/components"
-import { forwardGeocode, hasMapbox } from "../components/mapUtils"
+import { forwardGeocode, getRoute, hasMapbox } from "../components/mapUtils"
 import type { DispatchClient } from "../shared/useDispatch"
 import { useOperatorBroadcast } from "../shared/useTracking"
 import "./operator.css"
@@ -288,11 +288,38 @@ function JobProgress({ job, act, pending }: {
     return Math.max(1, Math.round(dist * 1.4 / 30 * 60))
   })() : null
 
+  // Compute route line from operator to motorist's pickup
+  const [routeLine, setRouteLine] = useState<{ type: "LineString"; coordinates: [number, number][] } | null>(null)
+  const routeThrottle = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const lastRouteKey = useRef("")
+
+  useEffect(() => {
+    if (!myPosition || !pickupCoords || !hasMapbox()) {
+      setRouteLine(null)
+      return
+    }
+    const key = `${myPosition.lng.toFixed(3)},${myPosition.lat.toFixed(3)}`
+    if (key === lastRouteKey.current) return
+    if (routeThrottle.current) clearTimeout(routeThrottle.current)
+    routeThrottle.current = setTimeout(() => {
+      lastRouteKey.current = key
+      void getRoute(myPosition, pickupCoords).then((result) => {
+        if (result) setRouteLine(result.geometry as { type: "LineString"; coordinates: [number, number][] })
+      })
+    }, 2000)
+    return () => { if (routeThrottle.current) clearTimeout(routeThrottle.current) }
+  }, [myPosition, pickupCoords])
+
+  // Pickup pin for map
+  const pickupPin: [number, number] | null = pickupCoords
+    ? [pickupCoords.lng, pickupCoords.lat]
+    : null
+
   return (
     <>
       {/* Map */}
       <div className="op-job-map">
-        <IllustrativeMap tracking showUserLocation />
+        <IllustrativeMap tracking showUserLocation pickup={pickupPin} route={routeLine} />
       </div>
 
       {/* GPS Tracking Status */}
