@@ -120,11 +120,33 @@ export function ActiveBooking({
             </>
           ) : (
             <>
-              <IllustrativeMap tracking operator={operatorPosition} />
+              <IllustrativeMap tracking operator={operatorPosition} showUserLocation />
+
+              {/* Live tracking status card */}
+              <div className="tracking-card">
+                <div className="tracking-header">
+                  <span className={`tracking-dot ${operatorPosition ? "live" : ""}`} />
+                  <strong>{operatorPosition ? "Live tracking" : "Waiting for operator GPS"}</strong>
+                </div>
+                {eta !== null && (
+                  <div className="tracking-eta">
+                    <Icon name="clock" size={18} />
+                    <span>
+                      <strong>~{eta} min</strong>
+                      <small>estimated arrival</small>
+                    </span>
+                  </div>
+                )}
+                {operatorPosition && (
+                  <p className="tracking-detail">
+                    <Icon name="truck" size={14} /> {booking.operatorName} is on the way
+                  </p>
+                )}
+              </div>
+
               <h1>{progressLabel(booking)}</h1>
               <p className="page-copy">
                 {booking.operatorName} · {booking.providerName}
-                {eta !== null && ` · ~${eta} min away`}
               </p>
               <div className="row-actions">
                 <Button

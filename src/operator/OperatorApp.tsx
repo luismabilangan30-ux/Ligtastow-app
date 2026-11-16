@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Avatar, Badge, BottomNav, Icon, MapCanvas, PhoneFrame } from "../components/ui"
 import { bookingStages, isActive, progressLabel, type Actor, type DispatchBooking } from "../shared/dispatch"
 import { money, vehicleName } from "../motorist/model"
@@ -249,11 +249,46 @@ function JobProgress({ job, act, pending }: {
   const nextStage = stages[job.stage + 1]
   const isLast = job.stage === stages.length - 1
 
+  // Track own GPS position for ETA display
+  const [myPosition, setMyPosition] = useState<{ lng: number; lat: number } | null>(null)
+  useEffect(() => {
+    if (!navigator.geolocation) return
+    const id = navigator.geolocation.watchPosition(
+      (pos) => setMyPosition({ lng: pos.coords.longitude, lat: pos.coords.latitude }),
+      undefined,
+      { enableHighAccuracy: true, maximumAge: 10_000 },
+    )
+    return () => navigator.geolocation.clearWatch(id)
+  }, [])
+
+  // Compute ETA to pickup (rough estimate)
+  const etaMinutes = myPosition ? (() => {
+    // Simple haversine distance → ETA at ~30 km/h city speed
+    const R = 6371
+    const dLat = (14.6 - myPosition.lat) * Math.PI / 180 // fallback lat for pickup
+    const dLng = (121.0 - myPosition.lng) * Math.PI / 180
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(myPosition.lat * Math.PI / 180) * Math.cos(14.6 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return Math.max(1, Math.round(dist * 1.4 / 30 * 60))
+  })() : null
+
   return (
     <>
       {/* Map */}
       <div className="op-job-map">
-        <IllustrativeMap tracking />
+        <IllustrativeMap tracking showUserLocation />
+      </div>
+
+      {/* GPS Tracking Status */}
+      <div className="op-tracking-card">
+        <span className={`tracking-dot ${myPosition ? "live" : ""}`} />
+        <div>
+          <strong>{myPosition ? "GPS broadcasting" : "Acquiring GPS…"}</strong>
+          <small>{myPosition ? "Motorist can see your location" : "Enable location access"}</small>
+        </div>
+        {etaMinutes !== null && (
+          <span className="op-eta-badge">~{etaMinutes} min</span>
+        )}
       </div>
 
       {/* Motorist info */}

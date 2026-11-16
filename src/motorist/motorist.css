@@ -111,3 +111,67 @@
   .motorist-shell .home-map { height:clamp(235px,34dvh,290px); }
   .motorist-shell .btn { min-height:44px; }
 }
+
+
+/* ── Live Tracking Card (Motorist) ──────────────────────── */
+.motorist-shell .tracking-card {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 8px 0 12px;
+}
+.motorist-shell .tracking-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.motorist-shell .tracking-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d1d5db;
+  flex-shrink: 0;
+}
+.motorist-shell .tracking-dot.live {
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34,197,94,.25);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,.25); }
+  50% { box-shadow: 0 0 0 8px rgba(34,197,94,.1); }
+}
+.motorist-shell .tracking-eta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border-radius: 8px;
+}
+.motorist-shell .tracking-eta span {
+  display: flex;
+  flex-direction: column;
+}
+.motorist-shell .tracking-eta strong {
+  font-size: 18px;
+  color: #166534;
+}
+.motorist-shell .tracking-eta small {
+  font-size: 11px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.motorist-shell .tracking-detail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #374151;
+}
