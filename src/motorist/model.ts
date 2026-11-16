@@ -146,7 +146,7 @@ export const isTow = (service: Service) =>
   service === "Tow Truck" || service === "Emergency Tow"
 export const normalizePlate = (plate: string) =>
   plate.toUpperCase().replace(/[^A-Z0-9]/g, "")
-import { calculateFare } from "../shared/fareCalculator"
+import { calculateFare } from "../shared/fareCalculator.ts"
 
 export function quoteFor(
   service: Service,

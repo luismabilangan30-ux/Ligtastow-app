@@ -34,6 +34,7 @@ before(async () => {
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema auth to authenticated;`)
   await db.exec(await readFile(new URL("../supabase/migrations/202610310001_dispatch_foundation.sql", import.meta.url), "utf8"))
+  await db.exec(await readFile(new URL("../supabase/migrations/202611160001_booking_coordinates.sql", import.meta.url), "utf8"))
 })
 beforeEach(async () => {
   await db.exec("truncate auth.users, public.providers cascade")
@@ -99,7 +100,10 @@ test("cloud creation uses owned vehicle snapshots, authoritative prices and dura
 })
 
 test("cloud dispatch lifecycle preserves isolation, versions, audit identity and ratings", async () => {
-  let booking = await service.create(motorist, "motorist", await request())
+  const input = await request()
+  input.draft.pickupCoords = [121.05123, 14.61234]
+  input.draft.destinationCoords = [121.06345, 14.62456]
+  let booking = await service.create(motorist, "motorist", input)
   assert.equal((await service.snapshot(user(2), "motorist")).bookings.length, 0)
   assert.equal((await service.snapshot(user(7), "company:motor-trust")).bookings.length, 0)
   await assert.rejects(service.command(user(7), "company:motor-trust", booking.id, { action: "cancel", expectedVersion: 1, reason: "Forged", role: "central" }), code("NOT_FOUND"))
@@ -108,7 +112,11 @@ test("cloud dispatch lifecycle preserves isolation, versions, audit identity and
   assert.equal(booking.events[1].actorId, operator.id)
   assert.equal((await service.snapshot(user(4), `operator:${uid(102)}`)).bookings.length, 0)
   await assert.rejects(service.command(operator, operatorWorkspace, booking.id, { action: "advance", expectedVersion: 1 }), code("STALE_VERSION"))
-  while (booking.status !== "completed") booking = await service.command(operator, operatorWorkspace, booking.id, { action: "advance", expectedVersion: booking.version })
+  while (booking.stage < 5) booking = await service.command(operator, operatorWorkspace, booking.id, { action: "advance", expectedVersion: booking.version })
+  const loaded = (await service.snapshot(operator, operatorWorkspace)).bookings[0]
+  assert.deepEqual(loaded.pickupCoords, input.draft.pickupCoords)
+  assert.deepEqual(loaded.destinationCoords, input.draft.destinationCoords)
+  booking = await service.command(operator, operatorWorkspace, booking.id, { action: "advance", expectedVersion: booking.version })
   booking = await service.command(motorist, "motorist", booking.id, { action: "rate", expectedVersion: booking.version, rating: 5 })
   const saved = (await new PostgresDispatch(transaction).snapshot(motorist, "motorist")).bookings[0]
   assert.equal(saved.rating, 5)
