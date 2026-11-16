@@ -9,6 +9,7 @@ import {
   Page,
   ProviderHeader,
 } from "./components"
+import { useOperatorTracking } from "../shared/useTracking"
 import {
   isTow,
   money,
@@ -83,6 +84,10 @@ export function ActiveBooking({
   const [error, setError] = useState("")
   const searching = booking?.status === "searching"
   const statuses = bookingStages(booking?.service ?? "Tow Truck")
+
+  // Live operator tracking
+  const activeBookingId = booking?.status === "assigned" ? booking.id : undefined
+  const { operatorPosition, eta } = useOperatorTracking(activeBookingId)
   return (
     <Page
       title={searching ? "Finding your operator" : "Live tracking"}
@@ -115,10 +120,11 @@ export function ActiveBooking({
             </>
           ) : (
             <>
-              <IllustrativeMap tracking />
+              <IllustrativeMap tracking operator={operatorPosition} />
               <h1>{progressLabel(booking)}</h1>
               <p className="page-copy">
                 {booking.operatorName} · {booking.providerName}
+                {eta !== null && ` · ~${eta} min away`}
               </p>
               <div className="row-actions">
                 <Button
@@ -191,7 +197,9 @@ export function ActiveBooking({
             Cancel request
           </Button> : <p className="demo-notice">Service has started. Contact the company dispatcher for cancellation.</p>}
           <p className="page-copy spaced">
-            Location sharing is not available yet. GPS tracking coming soon.
+            {operatorPosition
+              ? "Your operator's location is being tracked in real time."
+              : "Operator location will appear here once GPS is available."}
           </p>
         </>
       )}

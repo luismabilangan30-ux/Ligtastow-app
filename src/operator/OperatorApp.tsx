@@ -4,6 +4,7 @@ import { bookingStages, isActive, progressLabel, type Actor, type DispatchBookin
 import { money, vehicleName } from "../motorist/model"
 import { ConfirmDialog, IllustrativeMap } from "../motorist/components"
 import type { DispatchClient } from "../shared/useDispatch"
+import { useOperatorBroadcast } from "../shared/useTracking"
 import "./operator.css"
 
 type OperatorScreen = "home" | "requests" | "job" | "history" | "profile"
@@ -15,6 +16,9 @@ export default function OperatorApp({ actor, api }: { actor: Actor; api: Dispatc
   const myJob = api.bookings.find(b => b.status === "assigned" && b.operatorId === actor.id)
   const requests = api.bookings.filter(b => b.status === "searching" && !b.declinedOperatorIds.includes(actor.id))
   const completed = api.bookings.filter(b => b.status === "completed" || b.status === "cancelled")
+
+  // Broadcast GPS location while working on an active job
+  useOperatorBroadcast(myJob?.id)
 
   const act = async (booking: DispatchBooking, action: string, extra?: Record<string, unknown>) => {
     const saved = await api.command(booking, { action: action as "accept", ...extra })
