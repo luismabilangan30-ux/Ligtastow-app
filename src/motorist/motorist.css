@@ -190,3 +190,135 @@
   align-items: center;
   gap: 5px;
 }
+
+
+/* ── Address autocomplete ───────────────────────────────── */
+.motorist-shell .address-field {
+  position: relative;
+  margin-bottom: 4px;
+}
+.motorist-shell .address-input-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.motorist-shell .address-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+.motorist-shell .gps-btn {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: #c4381c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.motorist-shell .gps-btn:hover {
+  background: #fef2f2;
+  border-color: #c4381c;
+}
+.motorist-shell .gps-btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.motorist-shell .gps-spinner {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #c4381c;
+  border-radius: 50%;
+  animation: gpsSpin .7s linear infinite;
+}
+@keyframes gpsSpin { to { transform: rotate(360deg); } }
+
+.motorist-shell .address-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 50;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  list-style: none;
+  padding: 4px;
+  margin: 4px 0 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.motorist-shell .address-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 10px;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background .12s;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #1f2937;
+}
+.motorist-shell .address-suggestion:hover,
+.motorist-shell .address-suggestion:focus {
+  background: #f3f4f6;
+}
+.motorist-shell .address-suggestion svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #c4381c;
+}
+.motorist-shell .address-suggestion span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.motorist-shell .address-suggestion strong {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.motorist-shell .address-suggestion small {
+  font-size: 11px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Map pin hint */
+.motorist-shell .map-pin-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #6b7280;
+  margin: 6px 0 10px;
+  padding: 0 2px;
+}
+.motorist-shell .map-pin-hint svg { color: #c4381c; }
+
+/* Address confirmed badge */
+.motorist-shell .address-confirmed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #16a34a;
+  font-weight: 500;
+  margin-top: 4px;
+}
+.motorist-shell .address-confirmed svg { color: #16a34a; }

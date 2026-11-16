@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type FormEvent } from "react"
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { Badge, Button, Icon, PhoneFrame } from "../components/ui"
-import { hasMapbox, forwardGeocode, getRoute } from "../components/mapUtils"
+import { hasMapbox, forwardGeocode, getRoute, reverseGeocode, getCurrentPosition, type GeoPosition, type GeocodingResult } from "../components/mapUtils"
 import {
   ConfirmDialog,
   EmptyState,
@@ -49,6 +49,15 @@ export default function BookingFlow({
   const [error, setError] = useState("")
   const [discard, setDiscard] = useState(false)
   const [routeLoading, setRouteLoading] = useState(false)
+
+  // Address autocomplete state
+  const [pickupSuggestions, setPickupSuggestions] = useState<GeocodingResult[]>([])
+  const [destSuggestions, setDestSuggestions] = useState<GeocodingResult[]>([])
+  const [activeField, setActiveField] = useState<"pickup" | "destination">("pickup")
+  const [locating, setLocating] = useState(false)
+  const pickupDebounce = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const destDebounce = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const blurTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
   const errorRef = useRef<HTMLDivElement>(null)
   const vehicle = vehicles.find((item) => item.id === draft.vehicleId)
   const provider = providerOptions.find((item) => item.id === draft.providerId)
@@ -64,6 +73,63 @@ export default function BookingFlow({
     setError("")
     change(changes)
   }
+  // ── Address autocomplete ──────────────────────────────────
+  const searchAddress = useCallback((query: string, field: "pickup" | "destination") => {
+    const setSuggestions = field === "pickup" ? setPickupSuggestions : setDestSuggestions
+    const debounceRef = field === "pickup" ? pickupDebounce : destDebounce
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!hasMapbox() || query.trim().length < 3) {
+      setSuggestions([])
+      return
+    }
+    debounceRef.current = setTimeout(() => {
+      void forwardGeocode(query).then(setSuggestions)
+    }, 350)
+  }, [])
+
+  const selectSuggestion = useCallback((result: GeocodingResult, field: "pickup" | "destination") => {
+    const coords: [number, number] = result.center
+    if (field === "pickup") {
+      change({ pickup: result.address, pickupCoords: coords })
+      setPickupSuggestions([])
+    } else {
+      change({ destination: result.address, destinationCoords: coords })
+      setDestSuggestions([])
+    }
+  }, [change])
+
+  // ── Use my location (GPS) ───────────────────────────────
+  const useMyLocation = useCallback(async () => {
+    setLocating(true)
+    try {
+      const pos = await getCurrentPosition()
+      const address = await reverseGeocode(pos)
+      change({
+        pickup: address || `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`,
+        pickupCoords: [pos.lng, pos.lat],
+      })
+      setPickupSuggestions([])
+    } catch {
+      setError("Could not get your location. Please enable GPS and try again.")
+    } finally {
+      setLocating(false)
+    }
+  }, [change])
+
+  // ── Tap map to pin location ─────────────────────────────
+  const handleMapClick = useCallback(async (pos: GeoPosition) => {
+    const coords: [number, number] = [pos.lng, pos.lat]
+    const address = hasMapbox() ? await reverseGeocode(pos) : ""
+    const label = address || `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`
+    if (activeField === "pickup") {
+      change({ pickup: label, pickupCoords: coords })
+      setPickupSuggestions([])
+    } else {
+      change({ destination: label, destinationCoords: coords })
+      setDestSuggestions([])
+    }
+  }, [activeField, change])
+
   // Geocode addresses and compute route when leaving step 3
   const computeRoute = async () => {
     if (!hasMapbox()) return
@@ -260,28 +326,115 @@ export default function BookingFlow({
           )}
           {step === 3 && (
             <>
-              <IllustrativeMap tracking />
-              <label className="field">
-                <span>Pickup address</span>
-                <input
-                  value={draft.pickup}
-                  maxLength={180}
-                  onChange={(event) => update({ pickup: event.target.value })}
-                  placeholder="Street, landmark and city"
-                />
-              </label>
-              {isTow(draft.service) ? (
+              <IllustrativeMap
+                tracking
+                showUserLocation
+                pickup={draft.pickupCoords ?? null}
+                destination={draft.destinationCoords ?? null}
+                onMapClick={handleMapClick}
+              />
+              {hasMapbox() && (
+                <p className="map-pin-hint">
+                  <Icon name="pin" size={13} /> Tap the map to set your {activeField === "pickup" ? "pickup" : "destination"} pin
+                </p>
+              )}
+
+              {/* Pickup address with autocomplete */}
+              <div className="address-field">
                 <label className="field">
-                  <span>Destination address</span>
-                  <input
-                    value={draft.destination}
-                    maxLength={180}
-                    onChange={(event) =>
-                      update({ destination: event.target.value })
-                    }
-                    placeholder="Service center, street and city"
-                  />
+                  <span>Pickup address</span>
+                  <div className="address-input-row">
+                    <input
+                      value={draft.pickup}
+                      maxLength={180}
+                      onFocus={() => setActiveField("pickup")}
+                      onChange={(event) => {
+                        update({ pickup: event.target.value, pickupCoords: undefined })
+                        searchAddress(event.target.value, "pickup")
+                      }}
+                      onBlur={() => { blurTimeout.current = setTimeout(() => setPickupSuggestions([]), 200) }}
+                      placeholder="Search for a street, landmark, or city"
+                      autoComplete="off"
+                    />
+                    {hasMapbox() && (
+                      <button
+                        type="button"
+                        className="gps-btn"
+                        onClick={useMyLocation}
+                        disabled={locating}
+                        aria-label="Use my current location"
+                        title="Use my current location"
+                      >
+                        {locating ? <span className="gps-spinner" /> : <Icon name="pin" size={16} />}
+                      </button>
+                    )}
+                  </div>
                 </label>
+                {pickupSuggestions.length > 0 && (
+                  <ul className="address-suggestions" role="listbox">
+                    {pickupSuggestions.map((result, i) => (
+                      <li key={i} role="option">
+                        <button
+                          type="button"
+                          className="address-suggestion"
+                          onMouseDown={() => {
+                            if (blurTimeout.current) clearTimeout(blurTimeout.current)
+                          }}
+                          onClick={() => selectSuggestion(result, "pickup")}
+                        >
+                          <Icon name="pin" size={14} />
+                          <span>
+                            <strong>{result.name}</strong>
+                            <small>{result.address}</small>
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Destination address with autocomplete (tow services only) */}
+              {isTow(draft.service) ? (
+                <div className="address-field">
+                  <label className="field">
+                    <span>Destination address</span>
+                    <input
+                      value={draft.destination}
+                      maxLength={180}
+                      onFocus={() => setActiveField("destination")}
+                      onChange={(event) => {
+                        update({ destination: event.target.value, destinationCoords: undefined })
+                        searchAddress(event.target.value, "destination")
+                      }}
+                      onBlur={() => { blurTimeout.current = setTimeout(() => setDestSuggestions([]), 200) }}
+                      placeholder="Search for service center, street, or city"
+                      autoComplete="off"
+                    />
+                  </label>
+                  {destSuggestions.length > 0 && (
+                    <ul className="address-suggestions" role="listbox">
+                      {destSuggestions.map((result, i) => (
+                        <li key={i} role="option">
+                          <button
+                            type="button"
+                            className="address-suggestion"
+                            onMouseDown={() => {
+                              if (blurTimeout.current) clearTimeout(blurTimeout.current)
+                            }}
+                            onClick={() => selectSuggestion(result, "destination")}
+                          >
+                            <Icon name="pin" size={14} />
+                            <span>
+                              <strong>{result.name}</strong>
+                              <small>{result.address}</small>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               ) : (
                 <div className="info-note">
                   <Icon name="pin" />
@@ -291,10 +444,12 @@ export default function BookingFlow({
                   </span>
                 </div>
               )}
-              <p className="page-copy spaced">
-                Addresses are saved as text. Distance and travel time
-                will be calculated once GPS is enabled.
-              </p>
+
+              {draft.pickupCoords && (
+                <p className="page-copy address-confirmed">
+                  <Icon name="check" size={13} /> Pickup location pinned on map
+                </p>
+              )}
             </>
           )}
           {step === 4 && (

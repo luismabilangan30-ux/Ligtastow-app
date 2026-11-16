@@ -69,7 +69,7 @@ export function IllustrativeMap({
           route={route}
           showUserLocation={showUserLocation}
           onMapClick={onMapClick}
-          interactive={!tracking || !!pickup}
+          interactive={!tracking || !!pickup || !!onMapClick}
         />
       </Suspense>
     )

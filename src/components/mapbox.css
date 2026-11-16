@@ -48,3 +48,10 @@
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
+
+
+/* ── Step 3 map: taller for pin interaction ─────────────── */
+.motorist-shell .booking-page .mapbox-container.mapbox-tracking {
+  height: 220px;
+  cursor: crosshair;
+}
