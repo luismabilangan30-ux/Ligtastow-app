@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { Avatar, Badge, BottomNav, Icon, MapCanvas, PhoneFrame } from "../components/ui"
-import { bookingStages, isActive, progressLabel, type Actor, type DispatchBooking } from "../shared/dispatch"
+import { bookingStages, isActive, progressLabel, type Actor, type DispatchBooking, type WorkspaceControls } from "../shared/dispatch"
 import { money, vehicleName } from "../motorist/model"
 import { ConfirmDialog, IllustrativeMap } from "../motorist/components"
 import { forwardGeocode, getRoute, hasMapbox, type RouteStep } from "../components/mapUtils"
@@ -10,7 +10,7 @@ import "./operator.css"
 
 type OperatorScreen = "home" | "requests" | "job" | "history" | "profile"
 
-export default function OperatorApp({ actor, api }: { actor: Actor; api: DispatchClient }) {
+export default function OperatorApp({ actor, api, workspaceControls }: { actor: Actor; api: DispatchClient; workspaceControls?: WorkspaceControls }) {
   const [screen, setScreen] = useState<OperatorScreen>("home")
   const [notice, setNotice] = useState("")
 
@@ -40,7 +40,7 @@ export default function OperatorApp({ actor, api }: { actor: Actor; api: Dispatc
       {screen === "requests" && <OperatorRequests actor={actor} requests={requests} act={act} pending={api.pending} notice={notice} navigate={navigate} />}
       {screen === "job" && <OperatorJob actor={actor} job={myJob} act={act} pending={api.pending} notice={notice} navigate={navigate} />}
       {screen === "history" && <OperatorHistory actor={actor} bookings={completed} navigate={navigate} />}
-      {screen === "profile" && <OperatorProfile actor={actor} api={api} navigate={navigate} />}
+      {screen === "profile" && <OperatorProfile actor={actor} api={api} navigate={navigate} workspaceControls={workspaceControls} />}
     </div>
   )
 }
@@ -514,8 +514,8 @@ function OperatorHistory({ actor, bookings, navigate }: {
 
 /* ── Profile ───────────────────────────────────────────────────────── */
 
-function OperatorProfile({ actor, api, navigate }: {
-  actor: Actor; api: DispatchClient; navigate: (s: OperatorScreen) => void
+function OperatorProfile({ actor, api, navigate, workspaceControls }: {
+  actor: Actor; api: DispatchClient; navigate: (s: OperatorScreen) => void; workspaceControls?: WorkspaceControls
 }) {
   const myJob = api.bookings.find(b => b.status === "assigned" && b.operatorId === actor.id)
   const totalCompleted = api.bookings.filter(b => b.status === "completed").length
@@ -555,6 +555,29 @@ function OperatorProfile({ actor, api, navigate }: {
         <p className="demo-notice" style={{ marginTop: 20 }}>
           Operator profile editing, truck management and availability settings are coming soon.
         </p>
+        {workspaceControls && workspaceControls.workspaces.length > 1 && (
+          <div className="op-workspace-select" style={{ marginTop: 16 }}>
+            <label className="field">
+              <span>Switch workspace</span>
+              <select
+                value={workspaceControls.currentWorkspace}
+                onChange={event => workspaceControls.select(event.target.value)}
+                disabled={workspaceControls.signingOut}
+              >
+                {workspaceControls.workspaces.map(item => (
+                  <option key={item.key} value={item.key}>
+                    {item.actor.role === "motorist" ? "Motorist" : `${item.actor.role === "central" ? "Central admin" : item.actor.role === "operator" ? "Operator" : "Company"} · ${item.actor.name}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        )}
+        {workspaceControls && (
+          <button className="signout-button" style={{ marginTop: 16, width: "100%" }} onClick={workspaceControls.signOut} disabled={workspaceControls.signingOut}>
+            <Icon name="logout" size={16} /> {workspaceControls.signingOut ? "Signing out…" : "Sign out"}
+          </button>
+        )}
       </main>
       <OperatorNav active="profile" navigate={navigate} />
     </PhoneFrame>

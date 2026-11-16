@@ -331,3 +331,29 @@
   font-size: 0.82rem;
 }
 .motorist-shell .address-hint svg { color: #d97706; }
+
+/* Workspace & Sign out in Profile */
+.motorist-shell .profile-signout {
+  margin-top: 16px;
+  padding: 0 20px 20px;
+}
+.motorist-shell .profile-signout .btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.motorist-shell .workspace-selector {
+  padding: 0 20px;
+}
+.motorist-shell .workspace-selector select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #fff;
+}

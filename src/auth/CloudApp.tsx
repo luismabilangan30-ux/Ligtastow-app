@@ -6,7 +6,7 @@ import OperatorApp from "../operator/OperatorApp"
 import type { MotoristProfile } from "../motorist/profileModel"
 import type { Vehicle } from "../motorist/model"
 import type { AccountClient, AccountSession } from "../shared/account"
-import type { Workspace } from "../shared/dispatch"
+import type { Workspace, WorkspaceControls } from "../shared/dispatch"
 import { useDispatch } from "../shared/useDispatch"
 import AuthForm from "./AuthForm"
 import { cloudRequest, supabase } from "./client"
@@ -109,24 +109,14 @@ function SignedWorkspace({ workspace, account, select, signOut, signingOut, noti
   workspace: Workspace; account: AccountClient; select: (key: string) => void; signOut: () => void; signingOut: boolean; notice: string
 }) {
   const api = useDispatch(workspace.actor, workspace.key)
+  const workspaceControls: WorkspaceControls = { workspaces: account.session.workspaces, currentWorkspace: workspace.key, select, signOut, signingOut }
   return <div className="dispatch-app">
-    <nav className="workspace-bar cloud-workspace" aria-label="Account workspace">
-      <div className="workspace-account">
-        <strong>LigtasTow</strong>
-        <span>Signed in{import.meta.env.DEV ? " · Development" : ""}</span>
-        <span className="workspace-email">{account.session.profile.email}</span>
-      </div>
-      <label>Workspace<select value={workspace.key} disabled={api.pending || account.pending || signingOut} onChange={event => select(event.target.value)}>
-        {account.session.workspaces.map(item => <option key={item.key} value={item.key}>{item.actor.role === "motorist" ? "Motorist" : `${item.actor.role === "central" ? "Central admin" : item.actor.role === "operator" ? "Operator" : "Company"} · ${item.actor.name}`}</option>)}
-      </select></label>
-      <button className="signout-button" onClick={signOut} disabled={api.pending || account.pending || signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button>
-    </nav>
     {notice && <p className="api-banner api-error" role="alert">{notice}</p>}
     <InstallBanner />
     <UpdateBanner />
     {api.loading && <div className="api-banner" role="status">Loading your bookings…</div>}
     {api.error && <div className="api-banner api-error" role="alert"><span>{api.error}</span><button onClick={() => void api.refresh()} disabled={api.pending}>Refresh / retry</button></div>}
     {account.error && <div className="api-banner api-error" role="alert">{account.error}</div>}
-    {workspace.actor.role === "motorist" ? <MotoristApp api={api} account={account} /> : workspace.actor.role === "operator" ? <OperatorApp actor={workspace.actor} api={api} /> : <Operations actor={workspace.actor} api={api} />}
+    {workspace.actor.role === "motorist" ? <MotoristApp api={api} account={account} workspaceControls={workspaceControls} /> : workspace.actor.role === "operator" ? <OperatorApp actor={workspace.actor} api={api} workspaceControls={workspaceControls} /> : <Operations actor={workspace.actor} api={api} workspaceControls={workspaceControls} />}
   </div>
 }

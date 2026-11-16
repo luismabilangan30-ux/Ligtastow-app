@@ -21,9 +21,10 @@ import VehicleEditor, { Vehicles } from "./Vehicles"
 import "./motorist.css"
 import type { DispatchClient } from "../shared/useDispatch"
 import type { AccountClient } from "../shared/account"
+import type { WorkspaceControls } from "../shared/dispatch"
 
 const vehicleStorageKey = "ligtastow.vehicles.v1"
-export default function MotoristApp({ api, account }: { api: DispatchClient; account?: AccountClient }) {
+export default function MotoristApp({ api, account, workspaceControls }: { api: DispatchClient; account?: AccountClient; workspaceControls?: WorkspaceControls }) {
   const { route, navigate, back, bookingStep } = useNavigation()
   const [demoVehicles, setVehicles] = useState<Vehicle[]>(() => {
     if (account) return []
@@ -160,6 +161,7 @@ export default function MotoristApp({ api, account }: { api: DispatchClient; acc
           startBooking={startBooking}
           navigate={navigate}
           back={back}
+          workspaceControls={workspaceControls}
         />
       )}
       {route.screen === "edit-profile" && (

@@ -14,6 +14,7 @@ import {
   type MotoristProfile,
 } from "./profileModel"
 import type { Screen, Service, Vehicle } from "./model"
+import type { WorkspaceControls } from "../shared/dispatch"
 
 type Navigate = (screen: Screen, options?: { id?: string }) => void
 
@@ -25,6 +26,7 @@ export default function Profile({
   back,
   startBooking,
   cloud = false,
+  workspaceControls,
 }: {
   profile: MotoristProfile
   vehicles: Vehicle[]
@@ -33,6 +35,7 @@ export default function Profile({
   back: () => void
   startBooking: (service?: Service) => void
   cloud?: boolean
+  workspaceControls?: WorkspaceControls
 }) {
   const settings = [
     [
@@ -96,6 +99,39 @@ export default function Profile({
       <p className="page-copy spaced">
         {cloud ? "Your profile, vehicles and notification preference are saved to your account." : "Profile edits and notification preferences are saved locally. Sign in to sync across devices."}
       </p>
+      {workspaceControls && workspaceControls.workspaces.length > 1 && (
+        <>
+          <h2>Workspace</h2>
+          <div className="workspace-selector">
+            <label className="field">
+              <span>Switch workspace</span>
+              <select
+                value={workspaceControls.currentWorkspace}
+                onChange={event => workspaceControls.select(event.target.value)}
+                disabled={workspaceControls.signingOut}
+              >
+                {workspaceControls.workspaces.map(item => (
+                  <option key={item.key} value={item.key}>
+                    {item.actor.role === "motorist" ? "Motorist" : `${item.actor.role === "central" ? "Central admin" : item.actor.role === "operator" ? "Operator" : "Company"} · ${item.actor.name}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </>
+      )}
+      {workspaceControls && (
+        <div className="profile-signout">
+          <button
+            className="btn secondary"
+            onClick={workspaceControls.signOut}
+            disabled={workspaceControls.signingOut}
+          >
+            <Icon name="logout" size={16} />
+            {workspaceControls.signingOut ? "Signing out…" : "Sign out"}
+          </button>
+        </div>
+      )}
     </Page>
   )
 }

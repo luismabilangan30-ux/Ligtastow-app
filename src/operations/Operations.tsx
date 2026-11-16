@@ -9,15 +9,18 @@ import {
   type Actor,
   type BookingCommand,
   type DispatchBooking,
+  type WorkspaceControls,
 } from "../shared/dispatch"
 import type { DispatchClient } from "../shared/useDispatch"
 
 export default function Operations({
   actor,
   api,
+  workspaceControls,
 }: {
   actor: Actor
   api: DispatchClient
+  workspaceControls?: WorkspaceControls
 }) {
   const [filter, setFilter] = useState("Active")
   const [query, setQuery] = useState("")
@@ -73,6 +76,26 @@ export default function Operations({
         <span className="ops-live">
           <span /> Updates every 3 seconds
         </span>
+        {workspaceControls && (
+          <div className="ops-workspace-controls">
+            {workspaceControls.workspaces.length > 1 && (
+              <select
+                value={workspaceControls.currentWorkspace}
+                onChange={event => workspaceControls.select(event.target.value)}
+                disabled={workspaceControls.signingOut}
+              >
+                {workspaceControls.workspaces.map(item => (
+                  <option key={item.key} value={item.key}>
+                    {item.actor.role === "motorist" ? "Motorist" : `${item.actor.role === "central" ? "Central admin" : item.actor.role === "operator" ? "Operator" : "Company"} · ${item.actor.name}`}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button className="signout-button" onClick={workspaceControls.signOut} disabled={workspaceControls.signingOut}>
+              {workspaceControls.signingOut ? "Signing out…" : "Sign out"}
+            </button>
+          </div>
+        )}
       </header>
       {!actor.userId && <p className="ops-demo">Local workspace · No real operators, GPS or payments are connected.</p>}
       <div className="ops-metrics">

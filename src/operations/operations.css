@@ -68,3 +68,7 @@
  .ops-list-heading { display:block; }.ops-list-heading input { width:100%; }.ops-booking { padding:17px; }.ops-filters { gap:5px; }.ops-filters button { padding:9px 11px; }.api-banner { font-size:11px; padding:10px; gap:8px; }
 }
 @media(prefers-reduced-motion:reduce) { .dispatch-app *, .dispatch-app *::before, .dispatch-app *::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+.ops-workspace-controls { display:flex; align-items:center; gap:10px; margin-top:10px; }
+.ops-workspace-controls select { padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px; background:#fff; }
+.ops-workspace-controls .signout-button { min-height:36px; }

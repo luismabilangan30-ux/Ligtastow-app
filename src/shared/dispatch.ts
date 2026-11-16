@@ -90,6 +90,14 @@ export type Workspace = {
   actor: Actor
 }
 
+export type WorkspaceControls = {
+  workspaces: Workspace[]
+  currentWorkspace: string
+  select: (key: string) => void
+  signOut: () => void
+  signingOut: boolean
+}
+
 export const isActive = (booking: Booking) =>
   booking.status === "searching" || booking.status === "assigned"
 export function bookingStages(service: Service) {
