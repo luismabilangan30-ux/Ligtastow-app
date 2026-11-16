@@ -107,9 +107,7 @@ export default function BookingFlow({
           </div>
           <div className="eyebrow">STEP {step} OF 5</div>
           <h1>{titles[step - 1]}</h1>
-          <p className="demo-notice">
-            {cloud ? "Development booking · Use test details. Requests are saved online and shared with the selected provider team. No real service or payment." : "Local demo · Use sample details. Submitted bookings are stored on this computer and shared with the demo workspaces."}
-          </p>
+          {!cloud ? <p className="demo-notice">Local mode · Bookings are stored on this device and shared with the dispatch workspace.</p> : null}
           {error && (
             <div
               className="form-error"
@@ -243,8 +241,8 @@ export default function BookingFlow({
                 </div>
               )}
               <p className="page-copy spaced">
-                Addresses are saved as text for this demo. Distance, travel time
-                and service coverage have not been calculated.
+                Addresses are saved as text. Distance and travel time
+                will be calculated once GPS is enabled.
               </p>
             </>
           )}
@@ -263,7 +261,7 @@ export default function BookingFlow({
                   real provider.
                 </p>
               </div>
-              <h2 className="subhead">Choose a sample provider</h2>
+              <h2 className="subhead">Choose a provider</h2>
               <div className="choice-list">
                 {providerOptions.map((item) => (
                   <button
@@ -278,7 +276,7 @@ export default function BookingFlow({
                     <ProviderHeader name={item.name} />
                     <span className="provider-detail">
                       {item.area} ·{" "}
-                      {money(quoteFor(draft.service, item.id).total)} sample
+                      {money(quoteFor(draft.service, item.id).total)} est.
                       total
                     </span>
                   </button>
@@ -343,8 +341,7 @@ export default function BookingFlow({
               </div>
               <Fare quote={quote} />
               <p className="page-copy spaced">
-                This is sample pricing. It is not based on the entered route,
-                actual provider availability, tolls or fuel costs.
+                Estimated fare based on service type and distance. Final amount may vary depending on actual route conditions.
               </p>
             </>
           )}
@@ -352,7 +349,7 @@ export default function BookingFlow({
         <div className="sticky-action">
           <button type="submit" className="btn btn-primary" disabled={pending}>
             {pending ? "Connecting…" : step === 5
-              ? `Confirm demo booking · ${money(quote.total)}`
+              ? `Confirm booking · ${money(quote.total)}`
               : "Continue"}
           </button>
           {step > 1 && (

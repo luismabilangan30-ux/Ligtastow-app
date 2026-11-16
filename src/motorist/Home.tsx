@@ -59,10 +59,10 @@ export default function MotoristHome({
       </div>
       <div className="home-sheet">
         <div className="grabber" />
-        <p className="demo-notice">
-          {cloud ? "Development account · Requests are saved online. No real service or payments." : "Local demo · Requests connect to the operator workspace. No real service or payments."}
-        </p>
-        {cloud && !providerOptions.length && <p className="demo-notice">No providers are enabled for testing yet. You can add your vehicle and update your profile.</p>}
+        {!cloud && <p className="demo-notice">
+          Local mode · Requests connect to the operator workspace.
+        </p>}
+        {cloud && !providerOptions.length && <p className="demo-notice">No providers available in your area yet. You can add your vehicle and update your profile.</p>}
         {activeBooking && (
           <button
             className="active-booking-link"
@@ -81,7 +81,7 @@ export default function MotoristHome({
             <small>ROADSIDE ASSISTANCE</small>
             <strong>How can we help?</strong>
           </div>
-          <Badge tone="success">Demo providers</Badge>
+          <Badge tone="success">Available</Badge>
         </div>
         <div className="service-grid">
           <button
@@ -92,7 +92,7 @@ export default function MotoristHome({
               <Icon name="truck" size={26} />
             </span>
             <strong>Tow Truck</strong>
-            <small>Try a request</small>
+            <small>Request now</small>
           </button>
           <button
             className="service-card"
@@ -102,7 +102,7 @@ export default function MotoristHome({
               <Icon name="wrench" size={24} />
             </span>
             <strong>Jump Start</strong>
-            <small>Try a request</small>
+            <small>Request now</small>
           </button>
           <button
             className="service-card"
@@ -112,7 +112,7 @@ export default function MotoristHome({
               <Icon name="car" size={24} />
             </span>
             <strong>Flat Tire</strong>
-            <small>Try a request</small>
+            <small>Request now</small>
           </button>
           <button
             className="service-card"
@@ -122,11 +122,11 @@ export default function MotoristHome({
               <Icon name="fuel" size={24} />
             </span>
             <strong>Fuel Refill</strong>
-            <small>Try a request</small>
+            <small>Request now</small>
           </button>
         </div>
         <div className="section-heading compact">
-          <strong>Sample partners</strong>
+          <strong>Nearby partners</strong>
           <button onClick={() => navigate("search")}>See all</button>
         </div>
         <div className="partner-scroll">
@@ -140,7 +140,7 @@ export default function MotoristHome({
               <div className="partner-main">
                 <strong>{p.name}</strong>
                 <span>
-                  <Icon name="shield" size={13} /> Demo provider
+                  <Icon name="shield" size={13} /> Verified provider
                 </span>
                 <small>{p.area}</small>
               </div>
@@ -149,7 +149,7 @@ export default function MotoristHome({
                   <Icon name="star" size={12} filled /> {p.rating}
                 </b>
                 <strong>{money(quoteFor("Tow Truck", p.id).total)}</strong>
-                <small>sample total</small>
+                <small>est. total</small>
               </div>
             </button>
           ))}

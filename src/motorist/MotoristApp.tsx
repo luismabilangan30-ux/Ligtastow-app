@@ -172,7 +172,7 @@ export default function MotoristApp({ api, account }: { api: DispatchClient; acc
             if (account) { if (!await account.saveProfile(value)) return }
             else setProfile(value)
             navigate("profile", {}, true)
-            notify(account ? "Profile saved to your account." : "Profile updated for this demo session.")
+            notify(account ? "Profile saved to your account." : "Profile updated.")
           }}
         />
       )}
@@ -237,7 +237,7 @@ export default function MotoristApp({ api, account }: { api: DispatchClient; acc
             )
             setDraft((previous) => ({ ...previous, vehicleId: vehicle.id }))
             back()
-            notify(account ? "Vehicle saved to your account." : "Vehicle saved in the local demo.")
+            notify(account ? "Vehicle saved to your account." : "Vehicle saved locally.")
           }}
         />
       )}

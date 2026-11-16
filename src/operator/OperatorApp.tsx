@@ -69,9 +69,7 @@ function OperatorHome({ actor, api, myJob, requests, completed, notice, navigate
       </div>
       <div className="home-sheet">
         <div className="grabber" />
-        <p className="demo-notice">
-          {actor.userId ? "Development operator · Updates are saved online. No real GPS, navigation or payments." : "Local demo · Dispatch connects to the motorist workspace. No real GPS or payments."}
-        </p>
+        {!actor.userId && <p className="demo-notice">Local mode · Dispatch connects to the motorist workspace.</p>}
 
         {/* Truck assignment card */}
         <div className="op-truck-card">
@@ -412,7 +410,7 @@ function OperatorProfile({ actor, api, navigate }: {
         </div>
 
         <p className="demo-notice" style={{ marginTop: 20 }}>
-          Operator profile editing, truck management and availability settings are planned features. Profile data comes from your account and provider membership.
+          Operator profile editing, truck management and availability settings are coming soon.
         </p>
       </main>
       <OperatorNav active="profile" navigate={navigate} />

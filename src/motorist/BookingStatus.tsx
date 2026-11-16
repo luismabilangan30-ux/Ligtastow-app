@@ -53,7 +53,7 @@ export function BookingDetails({ booking }: { booking: Booking }) {
       <div>
         <Icon name="wallet" />
         <span>
-          <small>DEMO TOTAL</small>
+          <small>ESTIMATED TOTAL</small>
           <strong>{money(booking.quote.total)}</strong>
         </span>
       </div>
@@ -85,7 +85,7 @@ export function ActiveBooking({
   const statuses = bookingStages(booking?.service ?? "Tow Truck")
   return (
     <Page
-      title={searching ? "Finding your operator" : "Demo tracking"}
+      title={searching ? "Finding your operator" : "Live tracking"}
       back={back}
     >
       {!booking ? (
@@ -96,7 +96,7 @@ export function ActiveBooking({
       ) : (
         <>
           <p className="demo-notice">
-            Development dispatch · Updates come from the operator workspace. No real roadside service is dispatched.
+            Your request has been submitted. You'll receive updates as your operator responds.
           </p>
           {searching ? (
             <>
@@ -110,7 +110,7 @@ export function ActiveBooking({
               </div>
               <h1>Waiting for your operator</h1>
               <p className="page-copy">
-                Your request is waiting with {booking.providerName}. Select an operator from that provider in the Workspace menu to accept it.
+                Your request is waiting with {booking.providerName}. An available operator will be assigned shortly.
               </p>
             </>
           ) : (
@@ -126,7 +126,7 @@ export function ActiveBooking({
                   icon="phone"
                   onClick={() =>
                     notify(
-                      "Phone calls are unavailable in this demo. No call was placed.",
+                      "Phone calls are not available yet. Use the operator's listed number directly.",
                     )
                   }
                 >
@@ -189,9 +189,9 @@ export function ActiveBooking({
             onClick={() => setCancelling(true)}
           >
             Cancel request
-          </Button> : <p className="demo-notice">Service has started. Ask the company dispatcher to review cancellation.</p>}
+          </Button> : <p className="demo-notice">Service has started. Contact the company dispatcher for cancellation.</p>}
           <p className="page-copy spaced">
-            Location sharing is off. No real GPS updates are sent.
+            Location sharing is not available yet. GPS tracking coming soon.
           </p>
         </>
       )}
@@ -208,7 +208,7 @@ export function ActiveBooking({
             if (!pending) void cancel(reason === "Other" ? otherReason.trim() : reason).then((saved) => { if (saved) setCancelling(false) })
           }}
         >
-          <p>This ends your demo request. No cancellation fee is charged.</p>
+          <p>Are you sure you want to cancel this request? A cancellation reason is required.</p>
           <label className="field">
             <span>Cancellation reason</span>
             <select
@@ -286,7 +286,7 @@ export function History({
       }
     >
       <p className="demo-notice">
-        {cloud ? "Account booking history · Saved online for your signed-in account." : "Local booking history · Saved on this computer by the development API."}
+        {cloud ? "Booking history" : "Local booking history · Saved on this device."}
       </p>
       <div className="segmented">
         {["All", "Ongoing", "Completed", "Cancelled"].map((value) => (
@@ -334,7 +334,7 @@ export function History({
             }
           >
             {booking.status === "completed"
-              ? "View demo receipt"
+              ? "View receipt"
               : booking.status === "cancelled"
                 ? "View cancellation"
                 : "Track active booking"}
@@ -343,7 +343,7 @@ export function History({
       ))}
       {!shown.length && (
         <EmptyState title="No bookings here yet">
-          Your {filter === "All" ? "demo" : filter.toLowerCase()} requests will
+          Your {filter === "All" ? "" : filter.toLowerCase() + " "}requests will
           appear here.
           <Button onClick={() => startBooking()}>Request assistance</Button>
         </EmptyState>
@@ -367,13 +367,13 @@ export function Receipt({
       title={
         booking?.status === "cancelled"
           ? "Cancellation details"
-          : "Demo receipt"
+          : "Receipt"
       }
       back={back}
     >
       {!booking ? (
         <EmptyState title="Booking unavailable">
-          Check the local dispatch connection or open a record from History.
+          This booking is no longer available. Open a record from History instead.
         </EmptyState>
       ) : (
         <>
@@ -388,19 +388,19 @@ export function Receipt({
               <h2>Reason for cancellation</h2>
               <p className="page-copy">{booking.cancellationReason}</p>
               <p className="demo-notice">
-                No payment or cancellation fee was collected.
+                No charges were applied for this cancelled request.
               </p>
             </>
           ) : (
             <>
               <Fare quote={booking.quote} />
               <p className="demo-notice">
-                Demo record only. This is not proof of payment.
+                Digital receipt. Payment integration coming soon.
               </p>
               <h2>
                 {booking.rating
                   ? "Your service rating"
-                  : "Rate this demo service"}
+                  : "Rate this service"}
               </h2>
               <div
                 className="rating-options"

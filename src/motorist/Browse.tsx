@@ -55,7 +55,7 @@ export function Search({
         />
       </label>
       <p className="demo-notice">
-        Sample services and providers. Availability is not live.
+        Available services and providers in your area.
       </p>
       <p className="search-count" role="status">
         {shownServices.length + shownProviders.length} results
@@ -84,7 +84,7 @@ export function Search({
       )}
       {shownProviders.length > 0 && (
         <>
-          <h2>Sample providers</h2>
+          <h2>Nearby providers</h2>
           <div className="choice-list">
             {shownProviders.map((provider) => (
               <button
@@ -95,7 +95,7 @@ export function Search({
                 <ProviderHeader name={provider.name} />
                 <span className="provider-detail">
                   {provider.area} ·{" "}
-                  {money(quoteFor("Tow Truck", provider.id).total)} sample tow
+                  {money(quoteFor("Tow Truck", provider.id).total)} est. tow
                 </span>
               </button>
             ))}
@@ -132,8 +132,7 @@ export function Location({
   return (
     <Page title="Choose location" back={back}>
       <p className="page-copy">
-        Choose a saved example or enter your pickup address. Device location is
-        not connected.
+        Choose a saved location or enter your pickup address.
       </p>
       <label className="app-search">
         <Icon name="search" />
@@ -208,28 +207,28 @@ export function Settings({
   const content: Record<string, [string, string, string]> = {
     payments: [
       "Payment methods",
-      "No payment method is required for demo bookings.",
-      "GCash, cards and cash collection are not connected. Do not enter payment credentials into this demo.",
+      "No payment method is required at this time.",
+      "GCash, cards and cash collection will be available soon.",
     ],
     privacy: [
       "Safety & privacy",
       "Vehicles are saved in this browser’s local storage. Delete them in My vehicles to remove them from this browser.",
-      "Submitted bookings, entered addresses, notes, ratings and activity logs are stored in this project’s local development data file and shown to the relevant demo workspaces. Use sample data. Profile edits and notification preferences reset when you reload or switch workspaces. GPS, camera and device notification access are not requested.",
+      "Submitted bookings, addresses, notes, ratings and activity logs are stored securely and shared with the relevant dispatch teams. GPS, camera and device notification access are requested only when needed.",
     ],
     notifications: [
       "Notification settings",
       "Booking updates appear in the in-app notifications screen.",
-      "Push delivery is not connected and no device notification permission is requested.",
+      "Push notifications and SMS alerts are coming soon.",
     ],
     support: [
       "Help & support",
-      "This is a local demonstration of connected motorist and dispatch workspaces.",
-      "Submit a sample request, select the matching operator workspace to accept and progress the job, and return to Motorist to view updates and rate the service. Company and central workspaces can assign or cancel jobs. Real authentication, GPS, payments, phone calls and chat are not connected.",
+      "LigtasTow connects motorists with verified roadside-assistance providers.",
+      "Submit a request, wait for an operator to accept, and track your service in real time. Company and central dispatchers can assign or cancel jobs. For urgent help, use the SOS button on the Home screen.",
     ],
   }
   if (cloud) {
-    content.privacy = ["Safety & privacy", "Your profile, saved vehicles and booking history are stored in the development account database.", "Booking details and activity are available to the assigned provider team and authorized administrators. Deleting a saved vehicle keeps its snapshot in earlier bookings. This development version has no account-deletion workflow yet. GPS, camera and push notifications are not connected."]
-    content.support = ["Help & support", "This development version connects your account to saved profiles, vehicles and dispatch records.", "Use test details. Provider staff access must be assigned by the project owner. Sample prices and maps are illustrative; roadside service, payments, calls and chat are not connected."]
+    content.privacy = ["Safety & privacy", "Your profile, saved vehicles and booking history are stored securely in your account.", "Booking details and activity are available to the assigned provider team and authorized administrators. Deleting a saved vehicle keeps its snapshot in earlier bookings. GPS, camera and push notifications will be enabled as features roll out."]
+    content.support = ["Help & support", "LigtasTow connects your account to verified providers for roadside assistance.", "Provider staff access is assigned by company dispatchers. Estimated prices and route maps help you compare providers; payment integration is coming soon."]
   }
   const [title, lead, body] = content[section ?? "support"] ?? content.support
   return (

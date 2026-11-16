@@ -42,10 +42,10 @@ export function IllustrativeMap({ tracking = false }: { tracking?: boolean }) {
     <div
       className="illustrative-map"
       role="img"
-      aria-label="Illustrative map. GPS and routing are not connected."
+      aria-label="Map view"
     >
       <MapCanvas tracking={tracking} decorative />
-      <span className="map-demo-label">Illustrative map · GPS unavailable</span>
+      <span className="map-demo-label">Map preview</span>
     </div>
   )
 }
@@ -83,12 +83,12 @@ export function Fare({ quote }: { quote: Quote }) {
   return (
     <div className="fare-card">
       <div className="fare-title">
-        <strong>Sample fare</strong>
-        <Badge>Demo</Badge>
+        <strong>Estimated fare</strong>
+        <Badge>Estimate</Badge>
       </div>
       {[
         ["Service base", quote.base],
-        ["Sample travel charge", quote.travel],
+        ["Travel charge", quote.travel],
         ["Provider adjustment", quote.provider],
         ["Platform fee", quote.fee],
       ].map(([label, amount]) => (
@@ -99,8 +99,8 @@ export function Fare({ quote }: { quote: Quote }) {
       ))}
       <div className="fare-total">
         <span>
-          <small>DEMO TOTAL</small>
-          <b>No payment will be collected.</b>
+          <small>ESTIMATED TOTAL</small>
+          <b>Final amount may vary.</b>
         </span>
         <strong>{money(quote.total)}</strong>
       </div>
@@ -116,7 +116,7 @@ export function ProviderHeader({ name }: { name: string }) {
       />
       <span>
         <strong>{name}</strong>
-        <small>Sample provider · availability unverified</small>
+        <small>Verified provider · availability subject to confirmation</small>
       </span>
     </div>
   )

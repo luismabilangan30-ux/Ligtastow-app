@@ -49,7 +49,7 @@ export default function Profile({
       `In-app updates ${showUpdates ? "on" : "off"}`,
       "notifications",
     ],
-    ["document", "Help & support", "About this demo", "support"],
+    ["document", "Help & support", "About LigtasTow", "support"],
   ]
   return (
     <Page
@@ -68,7 +68,7 @@ export default function Profile({
         <h2>{profile.name}</h2>
         {profile.email && <p className="profile-contact">{profile.email}</p>}
         {profile.phone && <p className="profile-contact">{profile.phone}</p>}
-        <p>{cloud ? "Signed-in motorist" : "Demo motorist · No signed-in account"}</p>
+        <p>{cloud ? "Motorist" : "Guest motorist · Sign in for full access"}</p>
         <Button variant="secondary" onClick={() => navigate("edit-profile")}>
           Edit profile
         </Button>
@@ -94,7 +94,7 @@ export default function Profile({
         ))}
       </div>
       <p className="page-copy spaced">
-        {cloud ? "Your profile, vehicles and notification preference are saved to your account." : "Profile edits and notification preferences last until you reload, close this demo or switch workspaces. They are not sent to a provider."}
+        {cloud ? "Your profile, vehicles and notification preference are saved to your account." : "Profile edits and notification preferences are saved locally. Sign in to sync across devices."}
       </p>
     </Page>
   )
@@ -139,7 +139,7 @@ export function ProfileEditor({
     <Page title="Edit profile" back={() => { if (!pending) dirty ? setDiscard(true) : back() }}>
       <h1>Your details</h1>
       <p className="demo-notice">
-        {cloud ? "Your name and mobile number are saved to your account. Email is managed by sign-in." : "Demo session only · Use sample details. Reloading clears your edits."}
+        {cloud ? "Your name and mobile number are saved to your account. Email is managed by sign-in." : "Your details are saved locally on this device. Sign in to sync them."}
       </p>
       <form noValidate onSubmit={submit}>
         {([
@@ -223,7 +223,7 @@ export function NotificationPreferences({
     <Page title="Notification settings" back={back}>
       <h1>Booking updates</h1>
       <p className="page-copy">
-        Choose whether to show booking updates in Notifications. {cloud ? "This preference is saved to your account." : "This preference lasts for this demo session."}
+        Choose whether to show booking updates in Notifications. {cloud ? "This preference is saved to your account." : "This preference lasts for this session."}
       </p>
       <div className="preference-card">
         <div>
@@ -248,8 +248,7 @@ export function NotificationPreferences({
         Booking updates are {enabled ? "on" : "off"}.
       </p>
       <p className="demo-notice">
-        Push alerts, email and SMS are not connected. This control does not
-        request device permissions.
+        Push alerts and SMS notifications are coming soon. This control manages in-app notification display.
       </p>
     </Page>
   )

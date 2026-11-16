@@ -74,9 +74,7 @@ export default function Operations({
           <span /> Updates every 3 seconds
         </span>
       </header>
-      <p className="ops-demo">
-        {actor.userId ? "Signed-in development workspace · Changes are saved online. Use test data. GPS, payments and real roadside service are not connected." : "Local development workspace · Use sample data. No real operators, GPS or payments are connected."}
-      </p>
+      {!actor.userId && <p className="ops-demo">Local workspace · No real operators, GPS or payments are connected.</p>}
       <div className="ops-metrics">
         {[
           [
@@ -135,8 +133,8 @@ export default function Operations({
             })}
           </div>
           <p>
-            Demo roster. Availability reflects active assignments; online
-            presence and fleet editing are pending.
+            Operator roster. Availability reflects active assignments; online
+            presence and fleet management coming soon.
           </p>
         </section>
       )}
@@ -178,7 +176,7 @@ export default function Operations({
             </h3>
             <p>
               {operator
-                ? "New requests for your provider appear here. Create a sample request in the Motorist workspace to try the flow."
+                ? "New requests for your provider appear here."
                 : "Bookings appear here when a motorist submits a request."}
             </p>
           </div>
@@ -220,7 +218,7 @@ export default function Operations({
           }}
         >
           <p>
-            This ends the development booking. No fee or refund is processed.
+            This will cancel the booking. The motorist will be notified.
           </p>
           <label className="field">
             Reason
@@ -318,7 +316,7 @@ function BookingCard({
       </dl>
       {booking.notes && <p className="ops-notes">{booking.notes}</p>}
       <div className="ops-fare">
-        <span>Sample fare · No payment collected</span>
+        <span>Estimated fare</span>
         <strong>{money(booking.quote.total)}</strong>
       </div>
       {booking.cancellationReason && (

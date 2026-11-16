@@ -194,7 +194,7 @@ export default function VehicleEditor({
         </label>
         <button className="btn btn-primary full-width spaced" type="submit" disabled={pending}>
           <Icon name="check" />
-          {pending ? "Saving…" : cloud ? "Save vehicle to account" : "Save demo vehicle"}
+          {pending ? "Saving…" : "Save vehicle"}
         </button>
       </form>
       {discard && (
