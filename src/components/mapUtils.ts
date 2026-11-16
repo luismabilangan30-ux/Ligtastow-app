@@ -48,13 +48,72 @@ export interface GeocodingResult {
   name: string
   address: string
   center: [number, number]
+  /** Search Box mapbox_id — set when returned by suggest (needs retrieve for coords) */
+  mapbox_id?: string
 }
 
+// ── Session token for Search Box API billing ──────────────────────────
+let _sessionToken: string | undefined
+function sessionToken(): string {
+  if (!_sessionToken) _sessionToken = crypto.randomUUID()
+  return _sessionToken
+}
+/** Call after the user selects a suggestion to start a fresh session */
+export function resetSearchSession() { _sessionToken = undefined }
+
+/**
+ * Search Box API /suggest → /retrieve for better Philippine address coverage.
+ * Falls back to Geocoding v5 if Search Box returns nothing.
+ */
 export async function forwardGeocode(
   query: string,
   proximity?: GeoPosition,
 ): Promise<GeocodingResult[]> {
   if (!MAPBOX_TOKEN) return []
+
+  // ── Try Search Box API first (better PH address/POI data) ────────
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      access_token: MAPBOX_TOKEN,
+      session_token: sessionToken(),
+      country: "PH",
+      language: "en",
+      limit: "5",
+      types: "address,street,poi,place,locality,neighborhood",
+    })
+    if (proximity) params.set("proximity", `${proximity.lng},${proximity.lat}`)
+    const suggestUrl = `https://api.mapbox.com/search/searchbox/v1/suggest?${params}`
+    const suggestRes = await fetch(suggestUrl)
+    if (suggestRes.ok) {
+      const suggestData = await suggestRes.json()
+      const suggestions = suggestData.suggestions ?? []
+      if (suggestions.length > 0) {
+        // Retrieve full details (coordinates) for all suggestions
+        const results: GeocodingResult[] = []
+        for (const s of suggestions) {
+          if (!s.mapbox_id) continue
+          const retrieveUrl = `https://api.mapbox.com/search/searchbox/v1/retrieve/${s.mapbox_id}?access_token=${MAPBOX_TOKEN}&session_token=${sessionToken()}`
+          const retrieveRes = await fetch(retrieveUrl)
+          if (!retrieveRes.ok) continue
+          const retrieveData = await retrieveRes.json()
+          const feature = retrieveData.features?.[0]
+          if (!feature?.geometry?.coordinates) continue
+          results.push({
+            name: s.name ?? feature.properties?.name ?? "",
+            address: s.full_address ?? s.place_formatted ?? feature.properties?.full_address ?? "",
+            center: feature.geometry.coordinates as [number, number],
+            mapbox_id: s.mapbox_id,
+          })
+        }
+        if (results.length > 0) return results
+      }
+    }
+  } catch {
+    // Search Box failed, fall back to v5
+  }
+
+  // ── Fallback: Geocoding v5 ──────────────────────────────────────
   const params = new URLSearchParams({
     access_token: MAPBOX_TOKEN,
     country: "PH",

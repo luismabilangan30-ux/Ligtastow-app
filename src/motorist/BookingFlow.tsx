@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { Badge, Button, Icon, PhoneFrame } from "../components/ui"
-import { hasMapbox, forwardGeocode, getRoute, reverseGeocode, getCurrentPosition, type GeoPosition, type GeocodingResult } from "../components/mapUtils"
+import { hasMapbox, forwardGeocode, getRoute, reverseGeocode, getCurrentPosition, resetSearchSession, type GeoPosition, type GeocodingResult } from "../components/mapUtils"
 import {
   ConfirmDialog,
   EmptyState,
@@ -55,6 +55,7 @@ export default function BookingFlow({
   const [destSuggestions, setDestSuggestions] = useState<GeocodingResult[]>([])
   const [activeField, setActiveField] = useState<"pickup" | "destination">("pickup")
   const [locating, setLocating] = useState(false)
+  const proximityRef = useRef<GeoPosition | undefined>(undefined)
   const pickupDebounce = useRef<ReturnType<typeof setTimeout>>(undefined)
   const destDebounce = useRef<ReturnType<typeof setTimeout>>(undefined)
   const blurTimeout = useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -74,6 +75,13 @@ export default function BookingFlow({
     change(changes)
   }
   // ── Address autocomplete ──────────────────────────────────
+  // Grab user's GPS once on mount for proximity-biased suggestions
+  useEffect(() => {
+    if (hasMapbox() && !proximityRef.current) {
+      void getCurrentPosition().then(pos => { proximityRef.current = pos }).catch(() => {})
+    }
+  }, [])
+
   const searchAddress = useCallback((query: string, field: "pickup" | "destination") => {
     const setSuggestions = field === "pickup" ? setPickupSuggestions : setDestSuggestions
     const debounceRef = field === "pickup" ? pickupDebounce : destDebounce
@@ -83,12 +91,13 @@ export default function BookingFlow({
       return
     }
     debounceRef.current = setTimeout(() => {
-      void forwardGeocode(query).then(setSuggestions)
+      void forwardGeocode(query, proximityRef.current).then(setSuggestions)
     }, 350)
   }, [])
 
   const selectSuggestion = useCallback((result: GeocodingResult, field: "pickup" | "destination") => {
     const coords: [number, number] = result.center
+    resetSearchSession()
     if (field === "pickup") {
       change({ pickup: result.address, pickupCoords: coords })
       setPickupSuggestions([])
@@ -103,6 +112,7 @@ export default function BookingFlow({
     setLocating(true)
     try {
       const pos = await getCurrentPosition()
+      proximityRef.current = pos
       const address = await reverseGeocode(pos)
       change({
         pickup: address || `${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`,
@@ -141,11 +151,11 @@ export default function BookingFlow({
       let destCoords = draft.destinationCoords
 
       if (!pickupCoords) {
-        const results = await forwardGeocode(draft.pickup)
+        const results = await forwardGeocode(draft.pickup, proximityRef.current)
         pickupCoords = results[0]?.center as [number, number] | undefined
       }
       if (!destCoords && isTow(draft.service) && draft.destination) {
-        const results = await forwardGeocode(draft.destination)
+        const results = await forwardGeocode(draft.destination, proximityRef.current)
         destCoords = results[0]?.center as [number, number] | undefined
       }
 
