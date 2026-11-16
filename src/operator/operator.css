@@ -306,7 +306,7 @@
 
 /* ── Bottom Nav ────────────────────────────────────────────────────── */
 
-.op-bottom-nav { background: var(--surface); border-top: 1px solid var(--border); }
+.op-bottom-nav { background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .op-job-tab .nav-icon {
   background: var(--brand); color: white !important;
   width: 48px; height: 32px; border-radius: 16px;

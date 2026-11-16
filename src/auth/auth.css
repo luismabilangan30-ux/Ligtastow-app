@@ -1,4 +1,4 @@
-.auth-shell { min-height:100dvh; display:grid; place-items:center; padding:36px 20px; background:#f5f5f1; color:#26352c; }
+.auth-shell { min-height:100dvh; display:grid; place-items:center; padding:max(36px, env(safe-area-inset-top)) 20px max(36px, env(safe-area-inset-bottom)); background:#f5f5f1; color:#26352c; }
 .auth-card { width:100%; max-width:440px; padding:36px; background:white; border:1px solid #e0e5db; border-radius:22px; box-shadow:0 16px 60px #25352b0b; overflow-wrap:anywhere; }
 .auth-brand { font-weight:800; font-size:28px; letter-spacing:-1px; color:#273f2d; text-decoration:none; }
 .auth-brand span { color:#ba4128; }

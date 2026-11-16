@@ -5,6 +5,7 @@ import { resolve } from "node:path"
 
 await build({
   configFile: false,
+  publicDir: false,
   build: {
     lib: { entry: resolve("server/vercel/handler.ts"), formats: ["es"] },
     outDir: "api/v2",

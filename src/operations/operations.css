@@ -1,5 +1,5 @@
 .dispatch-app { min-height:100dvh; background:#f5f5f1; color:#202c25; }
-.workspace-bar { min-height:76px; padding:12px max(20px, calc((100vw - 1220px)/2)); display:flex; align-items:center; justify-content:space-between; gap:18px; background:#fff; border-bottom:1px solid #e2e5df; }
+.workspace-bar { min-height:76px; padding:max(12px, env(safe-area-inset-top)) max(20px, calc((100vw - 1220px)/2)) 12px; display:flex; align-items:center; justify-content:space-between; gap:18px; background:#fff; border-bottom:1px solid #e2e5df; }
 .workspace-bar > div { display:grid; gap:3px; flex-shrink:0; }
 .workspace-bar strong { font-size:21px; letter-spacing:-.8px; }
 .workspace-bar span { font-size:10px; color:#8c4a26; }
@@ -9,7 +9,7 @@
 .api-banner { padding:10px 20px; background:#fff3d8; color:#5e4a25; font-size:13px; display:flex; justify-content:center; align-items:center; gap:14px; }
 .api-error { background:#fce9e4; color:#8d2617; }
 .api-banner button { border:1px solid currentColor; border-radius:6px; padding:6px 10px; background:white; white-space:nowrap; }
-.operations-page { max-width:1220px; margin:auto; padding:34px 24px 70px; }
+.operations-page { max-width:1220px; margin:auto; padding:34px 24px calc(70px + env(safe-area-inset-bottom, 0px)); }
 .operations-heading { display:flex; justify-content:space-between; align-items:center; gap:20px; }
 .operations-heading h1 { font-size:30px; letter-spacing:-1px; margin:8px 0; }
 .operations-heading p { color:#687166; font-size:13px; margin:5px 0; }
@@ -62,7 +62,7 @@
 .ops-empty { padding:45px 20px; text-align:center; border:1px dashed #cbd4c0; border-radius:14px; color:#65725a; background:#fafbf8; }.ops-empty h3 { color:#37472d; }.ops-empty p { max-width:450px; margin:auto; font-size:13px; line-height:1.7; }
 .dispatch-app :focus-visible { outline:3px solid #af3c20; outline-offset:3px; }
 @media(max-width:600px) {
- .workspace-bar { padding:10px 12px; gap:10px; min-height:76px; }.workspace-bar strong { font-size:17px; }.workspace-bar select { width:100%; font-size:10px; }.workspace-bar label { min-width:0; width:185px; }
+ .workspace-bar { padding:max(10px, env(safe-area-inset-top)) 12px 10px; gap:10px; min-height:76px; }.workspace-bar strong { font-size:17px; }.workspace-bar select { width:100%; font-size:10px; }.workspace-bar label { min-width:0; width:185px; }
  .dispatch-app .showcase-bg { padding:0; }.dispatch-app .phone-frame { height:calc(100dvh - 76px); }.operations-page { padding:24px 14px 45px; }.operations-heading { display:block; }.operations-heading h1 { font-size:26px; }.ops-live { margin-top:14px; }
  .ops-metrics { gap:8px; }.ops-metrics > div { padding:12px 9px; gap:5px; display:flex; flex-direction:column; }.ops-metrics svg { display:none; }.ops-metrics strong { font-size:28px; }.ops-metrics span { font-size:10px; }
  .ops-list-heading { display:block; }.ops-list-heading input { width:100%; }.ops-booking { padding:17px; }.ops-filters { gap:5px; }.ops-filters button { padding:9px 11px; }.api-banner { font-size:11px; padding:10px; gap:8px; }
